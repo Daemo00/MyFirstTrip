@@ -4,26 +4,26 @@
     <item
         android:id="@+id/nav_trips"
         android:icon="@drawable/ic_menu_gallery"
-        android:title="@string/trips" />
+        android:title="@string/nav_trips_title" />
     <item
         android:id="@+id/nav_import"
         android:icon="@drawable/ic_menu_camera"
-        android:title="@string/importt" />
+        android:title="@string/nav_import_title" />
     <item
         android:id="@+id/nav_tools"
         android:icon="@drawable/ic_menu_manage"
-        android:title="@string/tools" />
+        android:title="@string/nav_tools_title" />
 
-    <item android:title="@string/communicate">
+    <item android:title="@string/nav_communicate_title">
         <menu>
             <item
                 android:id="@+id/nav_share"
                 android:icon="@drawable/ic_menu_share"
-                android:title="@string/share" />
+                android:title="@string/nav_share_title" />
             <item
                 android:id="@+id/nav_send"
                 android:icon="@drawable/ic_menu_send"
-                android:title="@string/send" />
+                android:title="@string/nav_send_title" />
         </menu>
     </item>
 

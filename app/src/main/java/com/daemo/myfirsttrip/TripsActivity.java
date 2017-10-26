@@ -3,55 +3,61 @@ package com.daemo.myfirsttrip;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.design.widget.FloatingActionButton;
-import android.support.design.widget.Snackbar;
-import android.view.View;
 import android.support.design.widget.NavigationView;
+import android.support.design.widget.Snackbar;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
+import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.widget.ListView;
+import android.view.ViewGroup;
+import android.widget.LinearLayout;
+import android.widget.TextView;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
 public class TripsActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener {
 
+    private final List<String> trips = Arrays.asList(
+            "Cracovia", "Palermo");
     private DrawerLayout drawer;
     private ActionBarDrawerToggle toggle;
-    private List<String> trips = Arrays.asList(
-            "Cracovia", "Palermo");
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_trips);
-        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+        Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
-        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
-        fab.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
-                        .setAction("Action", null).show();
-            }
-        });
+        FloatingActionButton fab = findViewById(R.id.fab);
+        fab.setOnClickListener(view -> Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
+                .setAction("Action", null).show());
 
-        drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
+        drawer = findViewById(R.id.drawer_layout);
         toggle = new ActionBarDrawerToggle(
                 this, drawer, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
         drawer.addDrawerListener(toggle);
         toggle.syncState();
 
-        NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
+        NavigationView navigationView = findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
 
+        fillListView();
+    }
+
+    private void fillListView() {
+        RecyclerView list_trips = findViewById(R.id.list_trips);
+        list_trips.setLayoutManager(new LinearLayoutManager(this));
+
+        list_trips.setAdapter(new TripsAdapter(trips));
     }
 
     @Override
@@ -112,5 +118,53 @@ public class TripsActivity extends AppCompatActivity
         drawer.removeDrawerListener(toggle);
         super.onDestroy();
 
+    }
+}
+
+class TripsAdapter extends RecyclerView.Adapter<TripsAdapter.ViewHolder> {
+    private final List<String> dataset;
+
+    // Provide a suitable constructor (depends on the kind of dataset)
+    TripsAdapter(List<String> myDataset) {
+        dataset = myDataset;
+    }
+
+    // Create new views (invoked by the layout manager)
+    @Override
+    public TripsAdapter.ViewHolder onCreateViewHolder(ViewGroup parent,
+                                                      int viewType) {
+        // create a new view
+        LinearLayout v = (LinearLayout) LayoutInflater.from(parent.getContext())
+                .inflate(R.layout.trip_card_view, parent, false);
+        // set the view's size, margins, paddings and layout parameters
+        return new ViewHolder(v);
+    }
+
+    // Replace the contents of a view (invoked by the layout manager)
+    @Override
+    public void onBindViewHolder(ViewHolder holder, int position) {
+        // - get element from your dataset at this position
+        // - replace the contents of the view with that element
+        holder.mTextView.setText(dataset.get(position));
+
+    }
+
+    // Return the size of your dataset (invoked by the layout manager)
+    @Override
+    public int getItemCount() {
+        return dataset.size();
+    }
+
+    // Provide a reference to the views for each data item
+    // Complex data items may need more than one view per item, and
+    // you provide access to all the views for a data item in a view holder
+    static class ViewHolder extends RecyclerView.ViewHolder {
+        // each data item is just a string in this case
+        final TextView mTextView;
+
+        ViewHolder(LinearLayout v) {
+            super(v);
+            mTextView = v.findViewById(R.id.trip_name);
+        }
     }
 }
