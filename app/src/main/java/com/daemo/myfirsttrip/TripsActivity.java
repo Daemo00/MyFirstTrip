@@ -1,54 +1,42 @@
 package com.daemo.myfirsttrip;
 
+import android.content.IntentFilter;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
-import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.NavigationView;
-import android.support.design.widget.Snackbar;
+import android.support.design.widget.NavigationView.OnNavigationItemSelectedListener;
+import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentManager;
+import android.support.v4.app.FragmentManager.BackStackEntry;
+import android.support.v4.app.FragmentTransaction;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.CardView;
-import android.support.v7.widget.LinearLayoutManager;
-import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.Gravity;
-import android.view.LayoutInflater;
-import android.view.Menu;
 import android.view.MenuItem;
-import android.view.ViewGroup;
-import android.widget.TextView;
 
+import com.daemo.myfirsttrip.MySuperFragment.OnFragmentInteractionListener;
+import com.daemo.myfirsttrip.R.id;
+import com.daemo.myfirsttrip.R.layout;
+import com.daemo.myfirsttrip.R.string;
+import com.daemo.myfirsttrip.common.Constants;
 import com.daemo.myfirsttrip.common.Utils;
 
-import java.util.Arrays;
-import java.util.List;
-
 public class TripsActivity extends AppCompatActivity
-        implements NavigationView.OnNavigationItemSelectedListener {
+        implements OnNavigationItemSelectedListener, OnFragmentInteractionListener {
 
-    private final List<String> trips = Arrays.asList(
-            "Cracovia", "Palermo", "Londra", "Madrid");
     private DrawerLayout drawer;
     private ActionBarDrawerToggle toggle;
+    private MyBroadcastReceiver tripsReceiver;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_trips);
-
-        FloatingActionButton fab = findViewById(R.id.fab);
-        fab.setOnClickListener(view -> Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
-                .setAction("Action", null).show());
-
-        fillListView();
-    }
-
-    @Override
-    protected void onStart() {
-        super.onStart();
-        setSupportActionBar(findViewById(R.id.toolbar));
+        setContentView(layout.activity_trips);
+        setSupportActionBar(findViewById(id.toolbar));
 
         ActionBar bar = getSupportActionBar();
         if (bar != null) {
@@ -57,21 +45,16 @@ public class TripsActivity extends AppCompatActivity
             bar.setDisplayHomeAsUpEnabled(true);
         }
 
-        drawer = findViewById(R.id.drawer_layout);
+        drawer = findViewById(id.drawer_layout);
         toggle = new ActionBarDrawerToggle(
-                this, drawer, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
+                this, drawer, string.navigation_drawer_open, string.navigation_drawer_close);
         drawer.addDrawerListener(toggle);
         toggle.syncState();
 
-        NavigationView navigationView = findViewById(R.id.nav_view);
+        NavigationView navigationView = findViewById(id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
-    }
 
-    private void fillListView() {
-        RecyclerView list_trips = findViewById(R.id.list_trips);
-        list_trips.setLayoutManager(new LinearLayoutManager(this));
-
-        list_trips.setAdapter(new TripsAdapter(trips));
+        registerReceiver(tripsReceiver = new MyBroadcastReceiver(), new IntentFilter(Constants.ACTION_TRIP_SELECTED));
     }
 
     @Override
@@ -82,13 +65,13 @@ public class TripsActivity extends AppCompatActivity
             super.onBackPressed();
         }
     }
-
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        // Inflate the menu; this adds items to the action bar if it is present.
-        getMenuInflater().inflate(R.menu.trips, menu);
-        return true;
-    }
+//
+//    @Override
+//    public boolean onCreateOptionsMenu(Menu menu) {
+//        // Inflate the menu; this adds items to the action bar if it is present.
+//        getMenuInflater().inflate(R.menu.trips, menu);
+//        return true;
+//    }
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
@@ -96,8 +79,6 @@ public class TripsActivity extends AppCompatActivity
         // automatically handle clicks on the Home/Up button, so long
         // as you specify a parent activity in AndroidManifest.xml.
         switch (item.getItemId()) {
-            case R.id.action_settings:
-                return true;
             case android.R.id.home:
                 drawer.openDrawer(Gravity.START);
                 return true;
@@ -106,80 +87,69 @@ public class TripsActivity extends AppCompatActivity
         }
     }
 
-    @SuppressWarnings("StatementWithEmptyBody")
     @Override
     public boolean onNavigationItemSelected(@NonNull MenuItem item) {
-        // Handle navigation view item clicks here.
-        int id = item.getItemId();
-
-        if (id == R.id.nav_trips) {
-            // Handle the camera action
-        } else if (id == R.id.nav_import) {
-
-        } else if (id == R.id.nav_tools) {
-
-        } else if (id == R.id.nav_share) {
-
-        } else if (id == R.id.nav_send) {
-
+        clearBackStack();
+        switch (item.getItemId()) {
+            case id.nav_trips:
+                replaceFragment(
+                        TripsListFragment.class.getName(),
+                        new Bundle(),
+                        false);
+                break;
+            case id.nav_import:
+            case id.nav_tools:
+            case id.nav_share:
+            case id.nav_send:
+                break;
         }
-
         drawer.closeDrawer(GravityCompat.START);
         return true;
+    }
+
+    private void clearBackStack() {
+        FragmentManager manager = getSupportFragmentManager();
+        if (manager.getBackStackEntryCount() > 0) {
+            BackStackEntry entry = manager.getBackStackEntryAt(0);
+            manager.popBackStack(entry.getId(), FragmentManager.POP_BACK_STACK_INCLUSIVE);
+        }
+    }
+
+    @Override
+    public void onFragmentInteraction(Bundle bundle) {
+        Log.d(Utils.getTag(this), "Received bundle " + Utils.debugBundle(bundle));
+        String fragment_name = bundle.getString(Constants.EXTRA_REPLACE_FRAGMENT, "");
+        if (!fragment_name.isEmpty()) {
+            replaceFragment(
+                    fragment_name,
+                    bundle.getBundle(Constants.EXTRA_BUNDLE_FOR_FRAGMENT),
+                    bundle.getBoolean(Constants.EXTRA_ADD_TO_BACKSTACK));
+        }
+    }
+
+    private void replaceFragment(String fragment_name, Bundle bundle_for_fragment, boolean addToBackStack) {
+        MySuperFragment fragment = (MySuperFragment) Fragment.instantiate(
+                this,
+                fragment_name,
+                bundle_for_fragment
+        );
+        FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
+        if (addToBackStack)
+            ft.addToBackStack("replace with " + Utils.getTag(fragment));
+        else
+            ft.disallowAddToBackStack();
+        ft.replace(id.main_content, fragment, Utils.getTag(fragment));
+        ft.commit();
+
+        // update selected item title, then close the drawer
+        setTitle(fragment.title);
+        drawer.closeDrawers();
     }
 
     @Override
     protected void onDestroy() {
         drawer.removeDrawerListener(toggle);
+        unregisterReceiver(tripsReceiver);
         super.onDestroy();
-
-    }
-}
-
-class TripsAdapter extends RecyclerView.Adapter<TripsAdapter.ViewHolder> {
-    private final List<String> dataset;
-
-    // Provide a suitable constructor (depends on the kind of dataset)
-    TripsAdapter(List<String> myDataset) {
-        dataset = myDataset;
-    }
-
-    // Create new views (invoked by the layout manager)
-    @Override
-    public TripsAdapter.ViewHolder onCreateViewHolder(ViewGroup parent,
-                                                      int viewType) {
-        // create a new view
-        CardView v = (CardView) LayoutInflater.from(parent.getContext())
-                .inflate(R.layout.trip_card_view, parent, false);
-        // set the view's size, margins, paddings and layout parameters
-        return new ViewHolder(v);
-    }
-
-    // Replace the contents of a view (invoked by the layout manager)
-    @Override
-    public void onBindViewHolder(ViewHolder holder, int position) {
-        // - get element from your dataset at this position
-        // - replace the contents of the view with that element
-        holder.mTextView.setText(dataset.get(position));
-
-    }
-
-    // Return the size of your dataset (invoked by the layout manager)
-    @Override
-    public int getItemCount() {
-        return dataset.size();
-    }
-
-    // Provide a reference to the views for each data item
-    // Complex data items may need more than one view per item, and
-    // you provide access to all the views for a data item in a view holder
-    static class ViewHolder extends RecyclerView.ViewHolder {
-        // each data item is just a string in this case
-        final TextView mTextView;
-
-        ViewHolder(CardView v) {
-            super(v);
-            mTextView = v.findViewById(R.id.trip_title);
-        }
     }
 }
