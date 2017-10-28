@@ -7,17 +7,20 @@ import android.support.design.widget.NavigationView;
 import android.support.design.widget.Snackbar;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
+import android.support.v7.app.ActionBar;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.CardView;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
-import android.support.v7.widget.Toolbar;
+import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.ViewGroup;
-import android.widget.LinearLayout;
 import android.widget.TextView;
+
+import com.daemo.myfirsttrip.common.Utils;
 
 import java.util.Arrays;
 import java.util.List;
@@ -26,7 +29,7 @@ public class TripsActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener {
 
     private final List<String> trips = Arrays.asList(
-            "Cracovia", "Palermo");
+            "Cracovia", "Palermo", "Londra", "Madrid");
     private DrawerLayout drawer;
     private ActionBarDrawerToggle toggle;
 
@@ -34,12 +37,25 @@ public class TripsActivity extends AppCompatActivity
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_trips);
-        Toolbar toolbar = findViewById(R.id.toolbar);
-        setSupportActionBar(toolbar);
 
         FloatingActionButton fab = findViewById(R.id.fab);
         fab.setOnClickListener(view -> Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
                 .setAction("Action", null).show());
+
+        fillListView();
+    }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+        setSupportActionBar(findViewById(R.id.toolbar));
+
+        ActionBar bar = getSupportActionBar();
+        if (bar != null) {
+            bar.setDisplayShowTitleEnabled(true);
+            bar.setTitle(this.getTitle() == null ? Utils.getTag(this) : this.getTitle());
+            bar.setDisplayHomeAsUpEnabled(true);
+        }
 
         drawer = findViewById(R.id.drawer_layout);
         toggle = new ActionBarDrawerToggle(
@@ -49,8 +65,6 @@ public class TripsActivity extends AppCompatActivity
 
         NavigationView navigationView = findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
-
-        fillListView();
     }
 
     private void fillListView() {
@@ -81,14 +95,15 @@ public class TripsActivity extends AppCompatActivity
         // Handle action bar item clicks here. The action bar will
         // automatically handle clicks on the Home/Up button, so long
         // as you specify a parent activity in AndroidManifest.xml.
-        int id = item.getItemId();
-
-        //noinspection SimplifiableIfStatement
-        if (id == R.id.action_settings) {
-            return true;
+        switch (item.getItemId()) {
+            case R.id.action_settings:
+                return true;
+            case android.R.id.home:
+                drawer.openDrawer(Gravity.START);
+                return true;
+            default:
+                return super.onOptionsItemSelected(item);
         }
-
-        return super.onOptionsItemSelected(item);
     }
 
     @SuppressWarnings("StatementWithEmptyBody")
@@ -134,7 +149,7 @@ class TripsAdapter extends RecyclerView.Adapter<TripsAdapter.ViewHolder> {
     public TripsAdapter.ViewHolder onCreateViewHolder(ViewGroup parent,
                                                       int viewType) {
         // create a new view
-        LinearLayout v = (LinearLayout) LayoutInflater.from(parent.getContext())
+        CardView v = (CardView) LayoutInflater.from(parent.getContext())
                 .inflate(R.layout.trip_card_view, parent, false);
         // set the view's size, margins, paddings and layout parameters
         return new ViewHolder(v);
@@ -162,9 +177,9 @@ class TripsAdapter extends RecyclerView.Adapter<TripsAdapter.ViewHolder> {
         // each data item is just a string in this case
         final TextView mTextView;
 
-        ViewHolder(LinearLayout v) {
+        ViewHolder(CardView v) {
             super(v);
-            mTextView = v.findViewById(R.id.trip_name);
+            mTextView = v.findViewById(R.id.trip_title);
         }
     }
 }

@@ -15,4 +15,8 @@
     <string name="profile_image_content_description">Profile image content description</string>
     <string name="profile_email">Profile email</string>
     <string name="profile_name">Profile name</string>
+    <string name="trip_name">Trip name</string>
+    <string name="trip_title">Trip title</string>
+    <string name="trip_action1">Action 1</string>
+    <string name="trip_action2">Action 2</string>
 </resources>
