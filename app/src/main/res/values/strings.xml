@@ -22,4 +22,6 @@
     <string name="person_subtitle">Person subtitle</string>
     <string name="nav_people_title">People</string>
     <string name="trips">Trips</string>
+    <string name="add_trip">Add trip</string>
+    <string name="add_person">Add person</string>
 </resources>

@@ -39,15 +39,15 @@ public class TripsActivity extends AppCompatActivity
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(layout.activity_trips);
-        setSupportActionBar(findViewById(id.toolbar));
 
-        ActionBar bar = getSupportActionBar();
-        if (bar != null) {
-            bar.setDisplayShowTitleEnabled(true);
-            bar.setTitle(this.getTitle() == null ? Utils.getTag(this) : this.getTitle());
-            bar.setDisplayHomeAsUpEnabled(true);
-        }
+        setupActionBar();
 
+        setupDrawer();
+
+        registerReceiver(tripsReceiver = new MyBroadcastReceiver(), new IntentFilter(Constants.ACTION_TRIP_SELECTED));
+    }
+
+    private void setupDrawer() {
         drawer = findViewById(id.drawer_layout);
         toggle = new ActionBarDrawerToggle(
                 this, drawer, string.navigation_drawer_open, string.navigation_drawer_close);
@@ -56,8 +56,16 @@ public class TripsActivity extends AppCompatActivity
 
         NavigationView navigationView = findViewById(id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
+    }
 
-        registerReceiver(tripsReceiver = new MyBroadcastReceiver(), new IntentFilter(Constants.ACTION_TRIP_SELECTED));
+    private void setupActionBar() {
+        setSupportActionBar(findViewById(id.toolbar));
+        ActionBar bar = getSupportActionBar();
+        if (bar != null) {
+            bar.setDisplayShowTitleEnabled(true);
+            bar.setTitle(this.getTitle() == null ? Utils.getTag(this) : this.getTitle());
+            bar.setDisplayHomeAsUpEnabled(true);
+        }
     }
 
     @Override
@@ -74,11 +82,11 @@ public class TripsActivity extends AppCompatActivity
         }
     }
 
-    public void showOkCancelDialog(final CharSequence title, final String message, final DialogInterface.OnClickListener okClickListener) {
+    private void showOkCancelDialog(final CharSequence title, final String message, final DialogInterface.OnClickListener okClickListener) {
         showOkCancelDialog(title, message, okClickListener, null);
     }
 
-    public void showOkCancelDialog(final CharSequence title, final String message, final DialogInterface.OnClickListener okClickListener, final DialogInterface.OnClickListener cancelClickListener) {
+    private void showOkCancelDialog(final CharSequence title, final String message, final DialogInterface.OnClickListener okClickListener, final DialogInterface.OnClickListener cancelClickListener) {
         final Activity thisActivity = this;
         this.runOnUiThread(() -> {
             AlertDialog alertDialog = new AlertDialog.Builder(thisActivity)

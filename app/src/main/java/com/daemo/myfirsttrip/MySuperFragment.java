@@ -29,6 +29,7 @@ public class MySuperFragment extends Fragment implements OnRefreshListener {
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        setHasOptionsMenu(true);
         Log.d(Utils.getTag(this), "onCreate, arguments is " + getArguments());
     }
 

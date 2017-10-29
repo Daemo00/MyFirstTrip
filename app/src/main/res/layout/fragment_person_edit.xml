@@ -5,14 +5,14 @@
     android:orientation="vertical"
     tools:context="com.daemo.myfirsttrip.PersonDetailFragment">
 
-    <android.support.v7.widget.AppCompatTextView
+    <android.support.v7.widget.AppCompatEditText
         android:id="@id/person_title"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="@string/person_title"
         android:textSize="@dimen/person_title" />
 
-    <android.support.v7.widget.AppCompatTextView
+    <android.support.v7.widget.AppCompatEditText
         android:id="@id/person_subtitle"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"

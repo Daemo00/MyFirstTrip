@@ -5,6 +5,7 @@ public class Person {
     public final int id;
     public final String name;
     public final String surname;
+    public boolean isDraft = false;
 
     public Person(int id, String name, String surname) {
         this.id = id;

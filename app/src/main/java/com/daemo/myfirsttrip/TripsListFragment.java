@@ -1,6 +1,5 @@
 package com.daemo.myfirsttrip;
 
-import android.content.Context;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v7.widget.CardView;
@@ -8,6 +7,9 @@ import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.RecyclerView.Adapter;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
@@ -22,7 +24,6 @@ import java.util.List;
 
 
 public class TripsListFragment extends MySuperFragment {
-    MySuperFragment.OnFragmentInteractionListener mListener;
 
     public TripsListFragment() {
         // Required empty public constructor
@@ -50,20 +51,21 @@ public class TripsListFragment extends MySuperFragment {
     }
 
     @Override
-    public void onAttach(Context context) {
-        super.onAttach(context);
-        if (context instanceof MySuperFragment.OnFragmentInteractionListener) {
-            mListener = (MySuperFragment.OnFragmentInteractionListener) context;
-        } else {
-            throw new RuntimeException(context.toString()
-                    + " must implement OnFragmentInteractionListener");
-        }
+    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+        super.onCreateOptionsMenu(menu, inflater);
+        inflater.inflate(R.menu.trips_list, menu);
     }
 
     @Override
-    public void onDetach() {
-        super.onDetach();
-        mListener = null;
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+            case R.id.add_trip:
+                Bundle b = new Bundle();
+                b.putBoolean(Constants.EXTRA_ADD_TO_BACKSTACK, true);
+                b.putString(Constants.EXTRA_REPLACE_FRAGMENT, TripDetailFragment.class.getName());
+                mListener.onFragmentInteraction(b);
+        }
+        return super.onOptionsItemSelected(item);
     }
 }
 

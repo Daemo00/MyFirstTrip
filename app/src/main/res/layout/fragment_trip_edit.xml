@@ -3,32 +3,32 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    tools:context="com.daemo.myfirsttrip.PersonDetailFragment">
+    tools:context="com.daemo.myfirsttrip.TripDetailFragment">
 
-    <android.support.v7.widget.AppCompatTextView
-        android:id="@id/person_title"
+    <android.support.v7.widget.AppCompatEditText
+        android:id="@id/trip_title"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="@string/person_title"
-        android:textSize="@dimen/person_title" />
+        android:text="@string/trip_title"
+        android:textSize="@dimen/trip_title" />
 
-    <android.support.v7.widget.AppCompatTextView
-        android:id="@id/person_subtitle"
+    <android.support.v7.widget.AppCompatEditText
+        android:id="@id/trip_subtitle"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="@string/person_subtitle"
-        android:textSize="@dimen/person_subtitle" />
+        android:text="@string/trip_subtitle"
+        android:textSize="@dimen/trip_subtitle" />
 
     <android.support.v7.widget.AppCompatTextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="@string/trips" />
+        android:text="@string/people" />
 
     <android.support.v7.widget.RecyclerView
-        android:id="@id/list_trips"
+        android:id="@id/list_people"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:paddingTop="8dp"
-        tools:listitem="@layout/trip_card_view" />
+        tools:listitem="@layout/person_card_view" />
 
 </android.support.v7.widget.LinearLayoutCompat>
