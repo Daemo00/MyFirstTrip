@@ -1,5 +1,7 @@
 package com.daemo.myfirsttrip;
 
+import android.app.Activity;
+import android.content.DialogInterface;
 import android.content.IntentFilter;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
@@ -13,6 +15,7 @@ import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.ActionBarDrawerToggle;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.Gravity;
@@ -61,17 +64,33 @@ public class TripsActivity extends AppCompatActivity
     public void onBackPressed() {
         if (drawer.isDrawerOpen(GravityCompat.START)) {
             drawer.closeDrawer(GravityCompat.START);
+        } else if (getSupportFragmentManager().getBackStackEntryCount() > 0) {
+            getSupportFragmentManager().popBackStack();
         } else {
-            super.onBackPressed();
+            showOkCancelDialog("Sure?", "Are you sure you want to exit?", (dialog, id) -> {
+                TripsActivity.this.finish();
+                TripsActivity.super.onBackPressed();
+            });
         }
     }
-//
-//    @Override
-//    public boolean onCreateOptionsMenu(Menu menu) {
-//        // Inflate the menu; this adds items to the action bar if it is present.
-//        getMenuInflater().inflate(R.menu.trips, menu);
-//        return true;
-//    }
+
+    public void showOkCancelDialog(final CharSequence title, final String message, final DialogInterface.OnClickListener okClickListener) {
+        showOkCancelDialog(title, message, okClickListener, null);
+    }
+
+    public void showOkCancelDialog(final CharSequence title, final String message, final DialogInterface.OnClickListener okClickListener, final DialogInterface.OnClickListener cancelClickListener) {
+        final Activity thisActivity = this;
+        this.runOnUiThread(() -> {
+            AlertDialog alertDialog = new AlertDialog.Builder(thisActivity)
+                    .setMessage(message)
+                    .setTitle(title)
+                    .setPositiveButton("Ok", okClickListener)
+                    .setNegativeButton("Cancel", cancelClickListener)
+                    .setCancelable(false)
+                    .create();
+            alertDialog.show();
+        });
+    }
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
@@ -89,18 +108,32 @@ public class TripsActivity extends AppCompatActivity
 
     @Override
     public boolean onNavigationItemSelected(@NonNull MenuItem item) {
-        clearBackStack();
         switch (item.getItemId()) {
             case id.nav_trips:
+                clearBackStack();
                 replaceFragment(
                         TripsListFragment.class.getName(),
                         new Bundle(),
                         false);
                 break;
+            case id.nav_people:
+                replaceFragment(
+                        PeopleListFragment.class.getName(),
+                        new Bundle(),
+                        false);
+                break;
             case id.nav_import:
             case id.nav_tools:
+                showOkCancelDialog("Sorry!", "Not yet implemented",
+                        (dialogInterface, i) -> {
+                        },
+                        (dialogInterface, i) -> {
+                        });
             case id.nav_share:
             case id.nav_send:
+                showOkCancelDialog("Sorry!", "Not yet implemented",
+                        (dialogInterface, i) -> {
+                        });
                 break;
         }
         drawer.closeDrawer(GravityCompat.START);

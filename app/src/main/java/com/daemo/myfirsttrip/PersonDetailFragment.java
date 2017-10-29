@@ -10,26 +10,25 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
-import com.daemo.myfirsttrip.R.id;
-import com.daemo.myfirsttrip.R.layout;
 import com.daemo.myfirsttrip.common.Constants;
 import com.daemo.myfirsttrip.database.Data;
-import com.daemo.myfirsttrip.models.Trip;
+import com.daemo.myfirsttrip.models.Person;
 
 
-public class TripDetailFragment extends MySuperFragment {
-    private Trip trip;
+public class PersonDetailFragment extends MySuperFragment {
 
 
-    public TripDetailFragment() {
+    private Person person;
+
+    public PersonDetailFragment() {
         // Required empty public constructor
     }
 
     @Override
-    public void onCreate(Bundle savedInstanceState) {
+    public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         if (getArguments() != null)
-            trip = Data.getTrip(getArguments().getInt(Constants.EXTRA_TRIP_ID));
+            person = Data.getPerson(getArguments().getInt(Constants.EXTRA_PERSON_ID));
     }
 
     @Override
@@ -37,7 +36,7 @@ public class TripDetailFragment extends MySuperFragment {
                              Bundle savedInstanceState) {
         View parent = super.onCreateView(inflater, container, savedInstanceState);
         // Inflate the layout for this fragment
-        View root = inflater.inflate(layout.fragment_trip_detail, container, false);
+        View root = inflater.inflate(R.layout.fragment_person_detail, container, false);
         if (parent instanceof ViewGroup) {
             ViewGroup viewGroup = (ViewGroup) parent;
             viewGroup.addView(root);
@@ -50,12 +49,13 @@ public class TripDetailFragment extends MySuperFragment {
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-        if (trip == null) return;
-        TextView trip_title = view.findViewById(id.trip_title);
-        trip_title.setText(trip.title);
-        TextView trip_subtitle = view.findViewById(id.trip_subtitle);
-        trip_subtitle.setText(trip.subtitle);
-        RecyclerView people_joined = view.findViewById(id.list_people);
-        PeopleListFragment.fillListView(this, people_joined, Data.getPeople(trip));
+        if (person == null) return;
+        TextView person_title = view.findViewById(R.id.person_title);
+        person_title.setText(person.name);
+        TextView person_subtitle = view.findViewById(R.id.person_subtitle);
+        person_subtitle.setText(person.surname);
+        RecyclerView people_joined = view.findViewById(R.id.list_trips);
+        TripsListFragment.fillListView(this, people_joined, Data.getTrips(person));
     }
+
 }

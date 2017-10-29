@@ -6,6 +6,10 @@
         android:icon="@drawable/ic_menu_gallery"
         android:title="@string/nav_trips_title" />
     <item
+        android:id="@+id/nav_people"
+        android:icon="@mipmap/ic_contacts_black_24dp"
+        android:title="@string/nav_people_title" />
+    <item
         android:id="@+id/nav_import"
         android:icon="@drawable/ic_menu_camera"
         android:title="@string/nav_import_title" />

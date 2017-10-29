@@ -2,21 +2,30 @@
     xmlns:card_view="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_gravity="center"
     card_view:cardCornerRadius="@dimen/cardview_default_radius"
     card_view:cardElevation="@dimen/cardview_default_elevation"
     card_view:cardUseCompatPadding="true">
 
     <android.support.v7.widget.LinearLayoutCompat
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="@dimen/person_card_height"
         android:orientation="vertical">
 
         <android.support.v7.widget.LinearLayoutCompat
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:background="@color/colorPrimary"
-            android:orientation="vertical">
+            android:orientation="horizontal">
+
+            <android.support.v7.widget.ContentFrameLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:padding="16dp">
+
+                <android.support.v7.widget.AppCompatImageView
+                    android:layout_width="40dp"
+                    android:layout_height="40dp"
+                    card_view:srcCompat="@mipmap/ic_account_circle_black_24dp" />
+            </android.support.v7.widget.ContentFrameLayout>
 
             <android.support.v7.widget.LinearLayoutCompat
                 android:layout_width="match_parent"
@@ -24,39 +33,23 @@
                 android:orientation="vertical"
                 android:paddingBottom="16dp"
                 android:paddingEnd="16dp"
-                android:paddingStart="16dp"
-                android:paddingTop="24dp">
+                android:paddingStart="0dp"
+                android:paddingTop="16dp">
 
                 <android.support.v7.widget.AppCompatTextView
-                    android:id="@+id/trip_title"
+                    android:id="@+id/person_title"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="@string/trip_title"
-                    android:textSize="@dimen/trip_title" />
+                    android:text="@string/person_title"
+                    android:textSize="@dimen/person_title" />
 
                 <android.support.v7.widget.AppCompatTextView
-                    android:id="@+id/trip_subtitle"
+                    android:id="@+id/person_subtitle"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="@string/trip_subtitle"
-                    android:textSize="@dimen/trip_subtitle" />
+                    android:text="@string/person_subtitle"
+                    android:textSize="@dimen/person_subtitle" />
             </android.support.v7.widget.LinearLayoutCompat>
-
-            <android.support.v7.widget.ButtonBarLayout
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:padding="8dp">
-
-                <android.support.v7.widget.AppCompatButton
-                    android:layout_width="wrap_content"
-                    android:layout_height="match_parent"
-                    android:text="@string/trip_action1" />
-
-                <android.support.v7.widget.AppCompatButton
-                    android:layout_width="wrap_content"
-                    android:layout_height="match_parent"
-                    android:text="@string/trip_action2" />
-            </android.support.v7.widget.ButtonBarLayout>
 
         </android.support.v7.widget.LinearLayoutCompat>
     </android.support.v7.widget.LinearLayoutCompat>

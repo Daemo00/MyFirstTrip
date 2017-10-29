@@ -19,8 +19,8 @@ import com.daemo.myfirsttrip.common.Utils;
 import java.util.Arrays;
 
 public class MySuperFragment extends Fragment implements OnRefreshListener {
-
     final String title = Utils.getTag(this);
+    MySuperFragment.OnFragmentInteractionListener mListener;
 
     public MySuperFragment() {
         Log.d(Utils.getTag(this), "Called constructor");
@@ -75,12 +75,22 @@ public class MySuperFragment extends Fragment implements OnRefreshListener {
         }
     }
 
-// --Commented out by Inspection START (28-Oct-17 17:24):
-//    public TripsActivity getTripsActivity() {
-//        if (getActivity() instanceof TripsActivity) return (TripsActivity) getActivity();
-//        return null;
-//    }
-// --Commented out by Inspection STOP (28-Oct-17 17:24)
+    @Override
+    public void onAttach(Context context) {
+        super.onAttach(context);
+        if (context instanceof MySuperFragment.OnFragmentInteractionListener) {
+            mListener = (MySuperFragment.OnFragmentInteractionListener) context;
+        } else {
+            throw new RuntimeException(context.toString()
+                    + " must implement OnFragmentInteractionListener");
+        }
+    }
+
+    @Override
+    public void onDetach() {
+        super.onDetach();
+        mListener = null;
+    }
 
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {

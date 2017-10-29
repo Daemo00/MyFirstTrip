@@ -4,4 +4,9 @@
     <dimen name="activity_vertical_margin">16dp</dimen>
     <dimen name="nav_header_vertical_spacing">16dp</dimen>
     <dimen name="nav_header_height">160dp</dimen>
+    <dimen name="trip_subtitle">14sp</dimen>
+    <dimen name="trip_title">24sp</dimen>
+    <dimen name="person_title">16sp</dimen>
+    <dimen name="person_subtitle">14sp</dimen>
+    <dimen name="person_card_height">72dp</dimen>
 </resources>
