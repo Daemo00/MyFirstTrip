@@ -34,6 +34,18 @@ public class TripsListFragment extends MySuperFragment {
         recyclerView.setAdapter(new TripsAdapter(fragment, trips));
     }
 
+    private static boolean tripsMenuItemSelected(MenuItem item, OnFragmentInteractionListener mListener) {
+        switch (item.getItemId()) {
+            case id.add_trip:
+                Bundle b = new Bundle();
+                b.putBoolean(Constants.EXTRA_ADD_TO_BACKSTACK, true);
+                b.putString(Constants.EXTRA_REPLACE_FRAGMENT, TripDetailFragment.class.getName());
+                mListener.onFragmentInteraction(b);
+                return true;
+        }
+        return false;
+    }
+
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
@@ -58,14 +70,7 @@ public class TripsListFragment extends MySuperFragment {
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        switch (item.getItemId()) {
-            case R.id.add_trip:
-                Bundle b = new Bundle();
-                b.putBoolean(Constants.EXTRA_ADD_TO_BACKSTACK, true);
-                b.putString(Constants.EXTRA_REPLACE_FRAGMENT, TripDetailFragment.class.getName());
-                mListener.onFragmentInteraction(b);
-        }
-        return super.onOptionsItemSelected(item);
+        return tripsMenuItemSelected(item, mListener) || super.onOptionsItemSelected(item);
     }
 }
 

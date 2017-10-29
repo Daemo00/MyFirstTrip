@@ -32,6 +32,18 @@ public class PeopleListFragment extends MySuperFragment {
         recyclerView.setAdapter(new PeopleAdapter(fragment, people));
     }
 
+    private static boolean peopleMenuItemSelected(MenuItem item, OnFragmentInteractionListener mListener) {
+        switch (item.getItemId()) {
+            case R.id.add_person:
+                Bundle b = new Bundle();
+                b.putBoolean(Constants.EXTRA_ADD_TO_BACKSTACK, true);
+                b.putString(Constants.EXTRA_REPLACE_FRAGMENT, PersonDetailFragment.class.getName());
+                mListener.onFragmentInteraction(b);
+                return true;
+        }
+        return false;
+    }
+
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
@@ -56,14 +68,7 @@ public class PeopleListFragment extends MySuperFragment {
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        switch (item.getItemId()) {
-            case R.id.add_person:
-                Bundle b = new Bundle();
-                b.putBoolean(Constants.EXTRA_ADD_TO_BACKSTACK, true);
-                b.putString(Constants.EXTRA_REPLACE_FRAGMENT, PersonDetailFragment.class.getName());
-                mListener.onFragmentInteraction(b);
-        }
-        return super.onOptionsItemSelected(item);
+        return peopleMenuItemSelected(item, mListener) || super.onOptionsItemSelected(item);
     }
 }
 

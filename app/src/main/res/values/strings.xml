@@ -24,4 +24,8 @@
     <string name="trips">Trips</string>
     <string name="add_trip">Add trip</string>
     <string name="add_person">Add person</string>
+    <string name="choose_trip">Choose trip</string>
+    <string name="choose_person">Choose person</string>
+    <string name="confirm_person">Confirm person</string>
+    <string name="confirm_trip">Confirm trip</string>
 </resources>

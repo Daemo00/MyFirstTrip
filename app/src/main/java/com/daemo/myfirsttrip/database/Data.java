@@ -79,18 +79,30 @@ public class Data {
     public static Trip getTripDraft() {
         Trip trip = new Trip(trips.size(), null, null);
         trip.isDraft = true;
-        trips.add(trip);
         return trip;
     }
 
     public static Person getPersonDraft() {
         Person person = new Person(people.size(), null, null);
         person.isDraft = true;
-        people.add(person);
         return person;
     }
 
     public static void addPersonTripLink(@NonNull Person person, @NonNull Trip trip) {
         personTripLinks.add(new Pair<>(person.id, trip.id));
+    }
+
+    public static Person commitPersonDraft(@NonNull Person person) {
+        person.isDraft = false;
+        if (people.add(person))
+            return getPerson(person.id);
+        return null;
+    }
+
+    public static Trip commitTripDraft(@NonNull Trip trip) {
+        trip.isDraft = false;
+        if (trips.add(trip))
+            return getTrip(trip.id);
+        return null;
     }
 }

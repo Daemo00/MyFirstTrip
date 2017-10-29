@@ -26,6 +26,11 @@ public class MySuperFragment extends Fragment implements OnRefreshListener {
         Log.d(Utils.getTag(this), "Called constructor");
     }
 
+    MySuperActivity getMySuperActivity() {
+        if (getActivity() instanceof MySuperActivity) return (MySuperActivity) getActivity();
+        return null;
+    }
+
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);

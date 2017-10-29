@@ -4,6 +4,7 @@ package com.daemo.myfirsttrip;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.support.v4.app.FragmentManager;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -40,12 +41,11 @@ public class TripDetailFragment extends MySuperFragment {
         else if (args.containsKey(Constants.EXTRA_TRIP_ID))
             trip = Data.getTrip(args.getInt(Constants.EXTRA_TRIP_ID));
         else if (args.containsKey(Constants.EXTRA_PERSON_ID)) {
-            // TODO quando non sono più bozze?
             trip = Data.getTripDraft();
             Person person = Data.getPerson(args.getInt(Constants.EXTRA_PERSON_ID));
             if (person != null) Data.addPersonTripLink(person, trip);
         }
-        isEditMode = trip == null || trip.isDraft;
+        isEditMode = trip.isDraft;
     }
 
     @Override
@@ -68,24 +68,62 @@ public class TripDetailFragment extends MySuperFragment {
     @Override
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
         super.onCreateOptionsMenu(menu, inflater);
-        inflater.inflate(R.menu.people_list, menu);
+//        // Add everything that you can do in the list of trips
+//        inflater.inflate(R.menu.people_list, menu);
+        // Also add the possibility to add an existing person
+        if (isEditMode)
+            inflater.inflate(R.menu.trip_detail_edit, menu);
+        inflater.inflate(R.menu.trip_detail, menu);
     }
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
+//        if (PeopleListFragment.peopleMenuItemSelected(item, mListener))
+//            return true;
         switch (item.getItemId()) {
-            case R.id.add_person:
-                Bundle b = new Bundle();
-                // TODO tieni conto quando è bozza
-                Bundle bb = new Bundle();
-                bb.putInt(Constants.EXTRA_TRIP_ID, trip.id);
-                b.putBundle(Constants.EXTRA_BUNDLE_FOR_FRAGMENT, bb);
-                b.putBoolean(Constants.EXTRA_ADD_TO_BACKSTACK, true);
-                b.putString(Constants.EXTRA_REPLACE_FRAGMENT, PersonDetailFragment.class.getName());
-                mListener.onFragmentInteraction(b);
+            case R.id.confirm_trip:
+                return confirmTrip();
+            case R.id.choose_person:
+                if (trip.isDraft)
+                    getMySuperActivity().showOkCancelDialog("Confirm",
+                            "Confirm the current modifications before choosing other people",
+                            (dialogInterface, i) -> confirmTrip());
+                else
+                    choosePerson();
+                break;
         }
         return super.onOptionsItemSelected(item);
     }
+
+    private boolean confirmTrip() {
+        //TODO use inserted data and validation
+        Trip committedTrip = Data.commitTripDraft(trip);
+        if (committedTrip == null) {
+            getMySuperActivity().showToast("Trip not committed");
+            return false;
+        }
+        // needed, otherwise this fragment isn't correctly removed
+        FragmentManager fragmentManager = getFragmentManager();
+        if (fragmentManager != null)
+            fragmentManager.popBackStack();
+
+        Bundle bb = new Bundle();
+        bb.putInt(Constants.EXTRA_TRIP_ID, committedTrip.id);
+        Bundle b = new Bundle();
+        b.putBundle(Constants.EXTRA_BUNDLE_FOR_FRAGMENT, bb);
+        b.putBoolean(Constants.EXTRA_ADD_TO_BACKSTACK, true);
+        b.putString(Constants.EXTRA_REPLACE_FRAGMENT, TripDetailFragment.class.getName());
+        mListener.onFragmentInteraction(b);
+        return true;
+    }
+
+    private void choosePerson() {
+        //TODO choose from people list
+        getMySuperActivity().showOkCancelDialog("Sorry!", "Not yet implemented",
+                (dialogInterface, i) -> {
+                });
+    }
+
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
@@ -110,4 +148,5 @@ public class TripDetailFragment extends MySuperFragment {
         RecyclerView people_joined = view.findViewById(id.list_people);
         PeopleListFragment.fillListView(this, people_joined, Data.getPeople(trip));
     }
+
 }
