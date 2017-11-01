@@ -2,8 +2,8 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto">
     <item
-        android:id="@+id/edit_trip"
-        android:icon="@drawable/ic_mode_edit_black_24dp"
-        android:title="@string/edit_trip"
+        android:id="@+id/confirm_person"
+        android:icon="@drawable/ic_done_black_24dp"
+        android:title="@string/confirm_person"
         app:showAsAction="ifRoom" />
 </menu>

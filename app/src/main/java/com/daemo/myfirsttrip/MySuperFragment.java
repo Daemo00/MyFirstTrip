@@ -104,6 +104,10 @@ public class MySuperFragment extends Fragment implements OnRefreshListener {
         Log.d(Utils.getTag(this), "onRequestPermissionsResult(" + requestCode + ", " + Arrays.toString(permissions) + ", " + Arrays.toString(grantResults) + ")");
     }
 
+    public boolean allowBackPress() {
+        return true;
+    }
+
     /**
      * This interface must be implemented by activities that contain this
      * fragment to allow an interaction in this fragment to be communicated
