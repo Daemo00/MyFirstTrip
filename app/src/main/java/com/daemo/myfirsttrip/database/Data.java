@@ -9,23 +9,27 @@ import com.daemo.myfirsttrip.models.Trip;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Set;
 
 public class Data {
 
     @SuppressWarnings("SpellCheckingInspection")
-    public static final List<Person> people = new ArrayList<>(Arrays.asList(
+    private static final List<Person> people = new ArrayList<>(Arrays.asList(
             new Person(0, "Roberta", "Cresta"),
             new Person(1, "Simone", "Rubino"),
             new Person(2, "Stefano", "Cresta"),
             new Person(3, "Valentina", "Rubino")));
-    public static final List<Trip> trips = new ArrayList<>(Arrays.asList(
+    private static final List<Trip> trips = new ArrayList<>(Arrays.asList(
             new Trip(0, "Cracovia", "It was nice"),
             new Trip(1, "Palermo", "It was very nice"),
             new Trip(2, "Londra", "It was very nice"),
             new Trip(3, "Madrid", "It was nice")));
 
-    private static final List<Pair<Integer, Integer>> personTripLinks = new ArrayList<>(Arrays.asList(
+    private static final Set<Pair<Integer, Integer>> personTripLinks = new HashSet<>(Arrays.asList(
             new Pair<>(0, 0),
             new Pair<>(0, 1),
             new Pair<>(0, 2),
@@ -60,7 +64,9 @@ public class Data {
         return null;
     }
 
-    public static List<Trip> getTrips(Person person) {
+    @NonNull
+    public static List<Trip> getTrips(@Nullable Person person) {
+        if (person == null) return trips;
         List<Trip> trips = new ArrayList<>();
         for (Pair<Integer, Integer> personTripLink : personTripLinks)
             if (personTripLink.first == person.id)
@@ -68,7 +74,9 @@ public class Data {
         return trips;
     }
 
-    public static List<Person> getPeople(Trip trip) {
+    @NonNull
+    public static List<Person> getPeople(@Nullable Trip trip) {
+        if (trip == null) return people;
         List<Person> people = new ArrayList<>();
         for (Pair<Integer, Integer> personTripLink : personTripLinks)
             if (personTripLink.second == trip.id)
@@ -76,33 +84,116 @@ public class Data {
         return people;
     }
 
+    @NonNull
     public static Trip getTripDraft() {
-        Trip trip = new Trip(trips.size(), null, null);
+        Trip trip = new Trip(
+                Collections.max(trips, (t1, t2) -> t1.id - t2.id).id + 1,
+                null,
+                null);
         trip.isDraft = true;
+        trips.add(trip);
         return trip;
     }
 
+    @NonNull
     public static Person getPersonDraft() {
-        Person person = new Person(people.size(), null, null);
+        Person person = new Person(
+                Collections.max(people, (p1, p2) -> p1.id - p2.id).id + 1,
+                null,
+                null);
         person.isDraft = true;
+        people.add(person);
         return person;
     }
 
-    public static void addPersonTripLink(@NonNull Person person, @NonNull Trip trip) {
-        personTripLinks.add(new Pair<>(person.id, trip.id));
-    }
+//    public static void addPersonTripLink(int personId, int tripId) {
+//        personTripLinks.add(new Pair<>(personId, tripId));
+//    }
 
+    @Nullable
     public static Person commitPersonDraft(@NonNull Person person) {
         person.isDraft = false;
-        if (people.add(person))
+        Person old_person = Data.getPerson(person.old_id);
+        if (old_person != null)
+            Data.removePerson(old_person, null);
+        if (people.contains(person) || people.add(person))
             return getPerson(person.id);
         return null;
     }
 
+    @Nullable
     public static Trip commitTripDraft(@NonNull Trip trip) {
         trip.isDraft = false;
-        if (trips.add(trip))
+        Trip old_trip = Data.getTrip(trip.old_id);
+        if (old_trip != null)
+            Data.removeTrip(old_trip, null);
+        if (trips.contains(trip) || trips.add(trip))
             return getTrip(trip.id);
         return null;
+    }
+
+    /**
+     * If person is null remove the trip and all its links
+     */
+    public static void removeTrip(Trip trip, @Nullable Person person) {
+        if (person == null) trips.remove(trip);
+        Iterator<Pair<Integer, Integer>> iterator = personTripLinks.iterator();
+        while (iterator.hasNext()) {
+            Pair<Integer, Integer> next = iterator.next();
+            if (next.second == trip.id && (person == null || next.first == person.id))
+                iterator.remove();
+        }
+    }
+
+    /**
+     * If trip is null remove the person and all its links
+     */
+    public static void removePerson(Person person, @Nullable Trip trip) {
+        if (trip == null) people.remove(person);
+        Iterator<Pair<Integer, Integer>> iterator = personTripLinks.iterator();
+        while (iterator.hasNext()) {
+            Pair<Integer, Integer> next = iterator.next();
+            if (next.first == person.id && (trip == null || next.second == trip.id))
+                iterator.remove();
+        }
+    }
+
+    public static boolean addTrip(Trip trip, Set<Integer> selected_person_ids) {
+        boolean res = trips.add(trip);
+        if (!res) return false;
+        for (Integer selected_person_id : selected_person_ids)
+            res &= personTripLinks.add(new Pair<>(selected_person_id, trip.id));
+        return res;
+    }
+
+    public static boolean addPerson(Person person, Set<Integer> selected_trip_ids) {
+        boolean res = people.add(person);
+        if (!res) return false;
+        for (Integer selected_trip_id : selected_trip_ids)
+            res &= personTripLinks.add(new Pair<>(person.id, selected_trip_id));
+        return res;
+    }
+
+    public static Trip getTripDraft(Trip trip) {
+        Trip draft = getTripDraft();
+        draft.title = trip.title;
+        draft.subtitle = trip.subtitle;
+        draft.old_id = trip.id;
+        List<Person> people = getPeople(trip);
+        for (Person person : people)
+            personTripLinks.add(new Pair<>(person.id, draft.id));
+        return draft;
+    }
+
+    public static Person getPersonDraft(Person person) {
+        Person draft = getPersonDraft();
+        draft.name = person.name;
+        draft.surname = person.surname;
+        draft.old_id = person.id;
+        List<Trip> trips = getTrips(person);
+        for (Trip trip : trips)
+            personTripLinks.add(new Pair<>(draft.id, trip.id));
+
+        return draft;
     }
 }

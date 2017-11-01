@@ -5,8 +5,10 @@ import android.content.DialogInterface;
 import android.content.IntentFilter;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
+import android.support.design.widget.BaseTransientBottomBar;
 import android.support.design.widget.NavigationView;
 import android.support.design.widget.NavigationView.OnNavigationItemSelectedListener;
+import android.support.design.widget.Snackbar;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentManager.BackStackEntry;
@@ -28,6 +30,8 @@ import com.daemo.myfirsttrip.R.layout;
 import com.daemo.myfirsttrip.R.string;
 import com.daemo.myfirsttrip.common.Constants;
 import com.daemo.myfirsttrip.common.Utils;
+
+import java.util.List;
 
 public class MySuperActivity extends AppCompatActivity
         implements OnNavigationItemSelectedListener, OnFragmentInteractionListener {
@@ -80,6 +84,15 @@ public class MySuperActivity extends AppCompatActivity
 
     @Override
     public void onBackPressed() {
+        List<Fragment> fragments = getSupportFragmentManager().getFragments();
+        boolean allowed = true;
+        for (Fragment fragment : fragments) {
+            if (fragment instanceof MySuperFragment) {
+                MySuperFragment mySuperFragment = (MySuperFragment) fragment;
+                allowed &= mySuperFragment.allowBackPress();
+            }
+        }
+        if (!allowed) return;
         if (drawer.isDrawerOpen(GravityCompat.START)) {
             drawer.closeDrawer(GravityCompat.START);
         } else if (getSupportFragmentManager().getBackStackEntryCount() > 0) {
@@ -96,7 +109,7 @@ public class MySuperActivity extends AppCompatActivity
         showOkCancelDialog(title, message, okClickListener, null);
     }
 
-    private void showOkCancelDialog(final CharSequence title, final String message, final DialogInterface.OnClickListener okClickListener, final DialogInterface.OnClickListener cancelClickListener) {
+    void showOkCancelDialog(final CharSequence title, final String message, final DialogInterface.OnClickListener okClickListener, final DialogInterface.OnClickListener cancelClickListener) {
         final Activity thisActivity = this;
         this.runOnUiThread(() -> {
             AlertDialog alertDialog = new AlertDialog.Builder(thisActivity)
@@ -116,6 +129,19 @@ public class MySuperActivity extends AppCompatActivity
         this.runOnUiThread(() -> {
             Toast toast = Toast.makeText(thisActivity, message, Toast.LENGTH_SHORT);
             toast.show();
+        });
+    }
+
+    public void showUndoSnackbar(BaseTransientBottomBar.BaseCallback<Snackbar> callback) {
+        final Activity thisActivity = this;
+        this.runOnUiThread(() -> {
+            Snackbar snackbar = Snackbar
+                    .make(thisActivity.getWindow().getDecorView().findViewById(id.main_content), "Sure?", Snackbar.LENGTH_LONG)
+                    .addCallback(callback)
+                    .setAction(string.undo, view -> {
+                        // Snackbar is automatically dismissed when its action is clicked
+                    });
+            snackbar.show();
         });
     }
 
