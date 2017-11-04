@@ -37,14 +37,14 @@
                 android:paddingTop="16dp">
 
                 <android.support.v7.widget.AppCompatTextView
-                    android:id="@+id/person_title"
+                    android:id="@+id/person_name"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:text="@string/person_title"
                     android:textSize="@dimen/person_title" />
 
                 <android.support.v7.widget.AppCompatTextView
-                    android:id="@+id/person_subtitle"
+                    android:id="@+id/person_surname"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:text="@string/person_subtitle"

@@ -2,8 +2,18 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto">
     <item
+        android:id="@+id/clear_person"
+        android:icon="@drawable/ic_clear_black_24dp"
+        android:title="@string/clear_person"
+        app:showAsAction="ifRoom" />
+    <item
         android:id="@+id/confirm_person"
         android:icon="@drawable/ic_done_black_24dp"
         android:title="@string/confirm_person"
+        app:showAsAction="ifRoom" />
+    <item
+        android:id="@+id/choose_trip"
+        android:icon="@drawable/ic_menu_gallery"
+        android:title="@string/choose_trip"
         app:showAsAction="ifRoom" />
 </menu>
