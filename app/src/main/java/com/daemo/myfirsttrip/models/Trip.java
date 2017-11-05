@@ -6,7 +6,7 @@ public class Trip {
     public String title;
     public String subtitle;
     public boolean isDraft = false;
-    public int old_id;
+    public int old_id = -1;
 
     public Trip(int id, String title, String subtitle) {
         this.id = id;

@@ -6,7 +6,7 @@ public class Person {
     public String name;
     public String surname;
     public boolean isDraft = false;
-    public int old_id;
+    public int old_id = -1;
 
     public Person(int id, String name, String surname) {
         this.id = id;

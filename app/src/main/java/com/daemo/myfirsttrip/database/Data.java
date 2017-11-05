@@ -113,7 +113,9 @@ public class Data {
     @Nullable
     public static Person commitPersonDraft(@NonNull Person person) {
         person.isDraft = false;
-        Data.removeTrip(Data.getTrip(person.old_id), null);
+        Person old_person = Data.getPerson(person.old_id);
+        if (old_person != null)
+            Data.removePerson(old_person, null);
         if (people.contains(person) || people.add(person))
             return getPerson(person.id);
         return null;
@@ -122,7 +124,9 @@ public class Data {
     @Nullable
     public static Trip commitTripDraft(@NonNull Trip trip) {
         trip.isDraft = false;
-        Data.removeTrip(Data.getTrip(trip.old_id), null);
+        Trip old_trip = Data.getTrip(trip.old_id);
+        if (old_trip != null)
+            Data.removeTrip(old_trip, null);
         if (trips.contains(trip) || trips.add(trip))
             return getTrip(trip.id);
         return null;
