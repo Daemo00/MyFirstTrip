@@ -84,11 +84,6 @@ public class PersonDetailFragment extends MySuperFragment implements EventListen
     }
 
     @Override
-    public void onRefresh() {
-
-    }
-
-    @Override
     public void onStop() {
         super.onStop();
         if (listenerRegistration != null) {

@@ -84,7 +84,8 @@ public class MySuperFragment extends Fragment implements OnRefreshListener {
 
     @Override
     public void onRefresh() {
-        setRefreshing(false);
+        if (mAdapter != null)
+            mAdapter.setQuery(mAdapter.mQuery);
     }
 
     public void setRefreshing(boolean isRefreshing) {

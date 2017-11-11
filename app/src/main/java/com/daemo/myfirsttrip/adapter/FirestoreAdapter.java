@@ -36,8 +36,8 @@ public abstract class FirestoreAdapter<VH extends RecyclerView.ViewHolder>
     final Set<Integer> selected_positions = new HashSet<>();
     private final ArrayList<DocumentSnapshot> mSnapshots = new ArrayList<>();
     public Set<String> selected_ids = new HashSet<>();
+    public Query mQuery;
     boolean isChooseMode;
-    private Query mQuery;
     private ListenerRegistration mRegistration;
 
     FirestoreAdapter(MySuperFragment fragment, Query query, Set<String> selected_ids) {

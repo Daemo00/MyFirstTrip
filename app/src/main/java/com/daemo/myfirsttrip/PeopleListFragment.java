@@ -89,11 +89,6 @@ public class PeopleListFragment extends MySuperFragment implements EventListener
     }
 
     @Override
-    public void onRefresh() {
-        fillListView();
-    }
-
-    @Override
     public void onStop() {
         super.onStop();
         if (listenerRegistration != null) {
