@@ -31,7 +31,6 @@ import java.util.Set;
 public abstract class FirestoreAdapter<VH extends RecyclerView.ViewHolder>
         extends RecyclerView.Adapter<VH>
         implements EventListener<QuerySnapshot>, ItemTouchHelperAdapter {
-    // TODO fix element deletion (something wrong gets loaded)
     private static final String TAG = Utils.getTag(FirestoreAdapter.class);
     final MySuperFragment fragment;
     final Set<Integer> selected_positions = new HashSet<>();
@@ -160,8 +159,6 @@ public abstract class FirestoreAdapter<VH extends RecyclerView.ViewHolder>
                 } else {
                     // Otherwise remove the item
                     deleteItem(mSnapshots.get(position));
-
-                    notifyItemRemoved(position);
                 }
             }
         });
