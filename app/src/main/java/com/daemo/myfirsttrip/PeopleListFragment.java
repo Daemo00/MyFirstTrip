@@ -1,13 +1,9 @@
 package com.daemo.myfirsttrip;
 
-import android.graphics.Color;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
-import android.support.design.widget.BaseTransientBottomBar;
-import android.support.design.widget.Snackbar;
 import android.support.v4.app.FragmentManager;
-import android.support.v7.widget.CardView;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.helper.ItemTouchHelper;
@@ -17,48 +13,38 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.TextView;
 
+import com.daemo.myfirsttrip.adapter.PeopleAdapter;
 import com.daemo.myfirsttrip.common.Constants;
-import com.daemo.myfirsttrip.common.ItemTouchHelperAdapter;
 import com.daemo.myfirsttrip.common.SimpleItemTouchHelperCallback;
 import com.daemo.myfirsttrip.database.Data;
-import com.daemo.myfirsttrip.models.Person;
 import com.daemo.myfirsttrip.models.Trip;
+import com.google.firebase.firestore.DocumentReference;
+import com.google.firebase.firestore.DocumentSnapshot;
+import com.google.firebase.firestore.EventListener;
+import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.FirebaseFirestoreException;
+import com.google.firebase.firestore.ListenerRegistration;
+import com.google.firebase.firestore.Query;
 
-import java.util.Collections;
 import java.util.HashSet;
-import java.util.List;
+import java.util.Locale;
 import java.util.Set;
 
 
-public class PeopleListFragment extends MySuperFragment {
+public class PeopleListFragment extends MySuperFragment implements EventListener<DocumentSnapshot> {
 
     private boolean isChooseMode;
-    private RecyclerView recyclerView;
+    private RecyclerView mRecyclerView;
     /**
-     * When this fragment is summoned to add people to a trip, this is the id of that trip
+     * When this fragment is summoned to add people_ids to a trip, this is that trip
      */
     private Trip orig_trip;
+    private ListenerRegistration listenerRegistration;
+    private DocumentReference tripDocReference;
 
     public PeopleListFragment() {
         // Required empty public constructor
-    }
-
-    /**
-     * If selected_person_ids is not null, we are in choose mode
-     */
-    public static void fillListView(MySuperFragment fragment, RecyclerView recyclerView, Trip trip, Set<Integer> selected_person_ids, boolean isClickable) {
-        recyclerView.setLayoutManager(new LinearLayoutManager(fragment.getContext()));
-        recyclerView.setHasFixedSize(true);
-        RecyclerView.Adapter adapter = new PeopleAdapter(fragment, trip, selected_person_ids, isClickable);
-        recyclerView.setAdapter(adapter);
-        if (trip == null && selected_person_ids == null) {
-            // Allow edit on the list only if we are in the main list
-            ItemTouchHelper.Callback callback = new SimpleItemTouchHelperCallback((ItemTouchHelperAdapter) adapter);
-            ItemTouchHelper touchHelper = new ItemTouchHelper(callback);
-            touchHelper.attachToRecyclerView(recyclerView);
-        }
     }
 
     @Override
@@ -66,11 +52,10 @@ public class PeopleListFragment extends MySuperFragment {
         super.onCreate(savedInstanceState);
         Bundle args = getArguments();
         if (args == null) return;
-        if (args.containsKey(Constants.EXTRA_CHOOSE)
-                && args.getBoolean(Constants.EXTRA_CHOOSE)
-                && args.containsKey(Constants.EXTRA_TRIP_ID)) {
-            isChooseMode = true;
-            orig_trip = Data.getTrip(args.getInt(Constants.EXTRA_TRIP_ID));
+        if (args.containsKey(Constants.EXTRA_CHOOSE))
+            isChooseMode = args.getBoolean(Constants.EXTRA_CHOOSE);
+        if (args.containsKey(Constants.EXTRA_TRIP_ID)) {
+            tripDocReference = Data.getTrip(args.getString(Constants.EXTRA_TRIP_ID));
         }
     }
 
@@ -92,14 +77,60 @@ public class PeopleListFragment extends MySuperFragment {
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-        recyclerView = view.findViewById(R.id.list_people);
-        Set<Integer> selected_person_ids = null;
-        if (isChooseMode) {
-            selected_person_ids = new HashSet<>();
-            for (Person person : Data.getPeople(orig_trip))
-                selected_person_ids.add(person.id);
+        mRecyclerView = view.findViewById(R.id.list_people);
+        fillListView();
+    }
+
+    @Override
+    public void onStart() {
+        super.onStart();
+        if (tripDocReference != null && listenerRegistration == null)
+            listenerRegistration = tripDocReference.addSnapshotListener(this);
+    }
+
+    @Override
+    public void onRefresh() {
+        fillListView();
+    }
+
+    @Override
+    public void onStop() {
+        super.onStop();
+        if (listenerRegistration != null) {
+            listenerRegistration.remove();
+            listenerRegistration = null;
         }
-        PeopleListFragment.fillListView(this, recyclerView, null, selected_person_ids, true);
+    }
+
+    private void fillListView() {
+        FirebaseFirestore mFirestore = getMySuperActivity().mFirestore;
+        Query query;
+        Set<String> selected_ids = new HashSet<>();
+        if (isChooseMode && orig_trip != null) {
+            // Get all people and populate selected_ids
+            query = mFirestore.collection(Constants.PEOPLE_COLLECTION);
+            selected_ids.addAll(orig_trip.getPeopleIds().keySet());
+        } else if (orig_trip != null) {
+            // Get only people in orig_trip
+            query = mFirestore.collection(Constants.PEOPLE_COLLECTION)
+                    .whereEqualTo(String.format(Locale.getDefault(), "trips_ids.%s", orig_trip.getId()), 1)
+                    .limit(Constants.QUERY_LIMIT);
+        } else {
+            // Get all the people!
+            query = mFirestore.collection(Constants.PEOPLE_COLLECTION)
+                    .limit(Constants.QUERY_LIMIT);
+        }
+        mRecyclerView.setLayoutManager(new LinearLayoutManager(this.getContext()));
+        mRecyclerView.setHasFixedSize(true);
+        mAdapter = new PeopleAdapter(this, query, selected_ids);
+        mAdapter.isChooseMode(isChooseMode);
+        mRecyclerView.setAdapter(mAdapter);
+        if (orig_trip == null) {
+            // Allow edit on the list only if we are in the main list
+            ItemTouchHelper.Callback callback = new SimpleItemTouchHelperCallback(mAdapter);
+            ItemTouchHelper touchHelper = new ItemTouchHelper(callback);
+            touchHelper.attachToRecyclerView(mRecyclerView);
+        }
     }
 
     @Override
@@ -126,26 +157,31 @@ public class PeopleListFragment extends MySuperFragment {
         return super.onOptionsItemSelected(item);
     }
 
-    boolean confirmSelection() {
-        PeopleAdapter adapter = (PeopleAdapter) recyclerView.getAdapter();
+    private boolean confirmSelection() {
+        // Update the orig_trip
+        orig_trip.getPeopleIds().clear();
+        for (Object selected_id : mAdapter.selected_ids)
+            if (selected_id instanceof String) {
+                String selectedId = (String) selected_id;
+                orig_trip.getPeopleIds().put(selectedId, 1);
+            }
 
-        // Re-add the trip and all its links
-        Data.removeTrip(orig_trip, null);
-        boolean isTripAdded = Data.addTrip(orig_trip, adapter.selected_person_ids);
-        FragmentManager fragmentManager = getFragmentManager();
-        if (!isTripAdded)
-            getMySuperActivity().showToast("Trip not added");
-        else if (fragmentManager != null)
-            // Go back to whoever called this
-            fragmentManager.popBackStack();
-        else
-            getMySuperActivity().showToast("Fragment manager not found");
-        return isTripAdded;
+        setRefreshing(true);
+        Data.updateTripBatch(orig_trip, null, task -> {
+            FragmentManager fragmentManager = getFragmentManager();
+            if (fragmentManager != null)
+                // Go back to whoever called this
+                fragmentManager.popBackStack();
+            else
+                getMySuperActivity().showToast("Fragment manager not found");
+            setRefreshing(false);
+        });
+        return true;
     }
 
     @Override
     public boolean allowBackPress() {
-        if (orig_trip != null && orig_trip.isDraft) {
+        if (orig_trip != null && orig_trip.isDraft()) {
             getMySuperActivity().showOkCancelDialog("Confirm",
                     "Confirm the current modifications?",
                     (dialogInterface, i) -> confirmSelection());
@@ -153,151 +189,15 @@ public class PeopleListFragment extends MySuperFragment {
         }
         return super.allowBackPress();
     }
+
+    @Override
+    public void onEvent(DocumentSnapshot documentSnapshot, FirebaseFirestoreException e) {
+        if (e != null) {
+            getMySuperActivity().showToast(e.getMessage());
+            return;
+        }
+        orig_trip = documentSnapshot.toObject(Trip.class);
+        fillListView();
+    }
 }
 
-class PeopleAdapter extends RecyclerView.Adapter<PeopleAdapter.ViewHolder> implements ItemTouchHelperAdapter {
-    private final Trip trip;
-    private final MySuperFragment fragment;
-    Set<Integer> selected_person_ids = new HashSet<>();
-    private boolean isChooseMode;
-    private Set<Integer> selected_positions = new HashSet<>();
-    private boolean isClickable;
-
-    // Provide a suitable constructor (depends on the kind of dataset)
-    PeopleAdapter(MySuperFragment fragment, Trip trip, Set<Integer> selected_person_ids, boolean isClickable) {
-        this.fragment = fragment;
-        this.trip = trip;
-        this.isChooseMode = selected_person_ids != null;
-        this.selected_person_ids = selected_person_ids;
-        this.isClickable = isClickable;
-    }
-
-    private List<Person> getDataset() {
-        return Data.getPeople(trip);
-    }
-
-    // Create new views (invoked by the layout manager)
-    @Override
-    public PeopleAdapter.ViewHolder onCreateViewHolder(ViewGroup parent,
-                                                       int viewType) {
-        // create a new view
-        CardView v = (CardView) LayoutInflater.from(parent.getContext())
-                .inflate(R.layout.person_card_view, parent, false);
-        // set the view's size, margins, paddings and layout parameters
-        return new PeopleAdapter.ViewHolder(v);
-    }
-
-    // Replace the contents of a view (invoked by the layout manager)
-    @Override
-    public void onBindViewHolder(PeopleAdapter.ViewHolder holder, int position) {
-        // - get element from your dataset at this position
-        // - replace the contents of the view with that element
-        Person person = getDataset().get(position);
-        holder.setPerson(fragment, person, isClickable);
-        if (isChooseMode) {
-            // Here I am just highlighting the background
-            holder.itemView.setBackgroundColor(selected_person_ids.contains(person.id) ? Color.GREEN : Color.TRANSPARENT);
-        }
-    }
-
-    // Return the size of your dataset (invoked by the layout manager)
-    @Override
-    public int getItemCount() {
-        return getDataset().size();
-    }
-
-    @Override
-    public void onItemDismiss(int position) {
-        fragment.getMySuperActivity().showUndoSnackbar(new BaseTransientBottomBar.BaseCallback<Snackbar>() {
-            @Override
-            public void onDismissed(Snackbar transientBottomBar, int event) {
-                super.onDismissed(transientBottomBar, event);
-                if (event == BaseTransientBottomBar.BaseCallback.DISMISS_EVENT_ACTION) {
-                    // If UNDO is clicked, restore the item
-                    notifyItemChanged(position);
-                } else {
-                    // Otherwise remove the item
-                    Person person = getDataset().get(position);
-                    Data.removePerson(person, trip);
-                    notifyItemRemoved(position);
-                }
-            }
-        });
-    }
-
-    @Override
-    public void onItemMove(int fromPosition, int toPosition) {
-        if (fromPosition < toPosition)
-            for (int i = fromPosition; i < toPosition; i++)
-                Collections.swap(getDataset(), i, i + 1);
-        else
-            for (int i = fromPosition; i > toPosition; i--)
-                Collections.swap(getDataset(), i, i - 1);
-        notifyItemMoved(fromPosition, toPosition);
-    }
-
-    // Provide a reference to the views for each data item
-    // Complex data items may need more than one view per item, and
-    // you provide access to all the views for a data item in a view holder
-    class ViewHolder extends RecyclerView.ViewHolder {
-        // each data item is just a string in this case
-        private final TextView mPersonTitle;
-        private final TextView mPersonSubtitle;
-        private final CardView mPersonCard;
-
-        ViewHolder(CardView v) {
-            super(v);
-            mPersonCard = v;
-            mPersonTitle = v.findViewById(R.id.person_name);
-            mPersonSubtitle = v.findViewById(R.id.person_surname);
-        }
-
-        private void setPerson(MySuperFragment fragment, Person person, boolean isClickable) {
-            this.mPersonTitle.setText(person.name);
-            this.mPersonSubtitle.setText(person.surname);
-//                Intent i = new Intent(Constants.ACTION_TRIP_SELECTED);
-//                i.putExtra(Constants.EXTRA_TRIP_ID, trip.id);
-            if (isClickable) {
-                Bundle b = new Bundle();
-                Bundle bb = new Bundle();
-                bb.putInt(Constants.EXTRA_PERSON_ID, person.id);
-                b.putBundle(Constants.EXTRA_BUNDLE_FOR_FRAGMENT, bb);
-                b.putBoolean(Constants.EXTRA_ADD_TO_BACKSTACK, true);
-                b.putString(Constants.EXTRA_REPLACE_FRAGMENT, PersonDetailFragment.class.getName());
-                mPersonCard.setOnClickListener(
-                        view -> {
-                            if (isChooseMode) {
-                                int position = getAdapterPosition();
-                                // Below line is just like a safety check, because sometimes holder could be null,
-                                // in that case, position will return RecyclerView.NO_POSITION
-                                if (position == RecyclerView.NO_POSITION) return;
-
-                                // Updating old as well as new positions
-                                for (Integer selected_position : selected_positions)
-                                    notifyItemChanged(selected_position);
-
-                                if (selected_positions.contains(position))
-                                    selected_positions.remove(position);
-                                else
-                                    selected_positions.add(position);
-
-                                if (selected_person_ids.contains(person.id))
-                                    selected_person_ids.remove(person.id);
-                                else
-                                    selected_person_ids.add(person.id);
-
-                                for (Integer selected_position : selected_positions)
-                                    notifyItemChanged(selected_position);
-
-                            } else
-                                fragment.mListener.onFragmentInteraction(b);
-                            // Suggested way is using interfaces
-                            // LocalBroadcastManager.getInstance(mPersonCard.getContext()).sendBroadcast(i);
-
-                            // No because it recreates the activity
-                            // mPersonCard.getContext().startActivity(i);
-                        });
-            }
-        }
-    }
-}

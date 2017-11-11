@@ -13,6 +13,7 @@ public class Constants {
     public static final String EXTRA_PERSON_ID = BuildConfig.APPLICATION_ID.concat(".EXTRA_PERSON_ID");
     public static final String EXTRA_EDIT = BuildConfig.APPLICATION_ID.concat(".EXTRA_EDIT");
     public static final String EXTRA_CHOOSE = BuildConfig.APPLICATION_ID.concat(".EXTRA_CHOOSE");
-    public static final String EXTRA_CHOSEN_TRIP_ID = BuildConfig.APPLICATION_ID.concat(".EXTRA_CHOSEN_TRIP_ID");
-    public static final String EXTRA_CHOSEN_PERSON_ID = BuildConfig.APPLICATION_ID.concat(".EXTRA_CHOSEN_PERSON_ID");
+    public static final String TRIPS_COLLECTION = "trips";
+    public static final String PEOPLE_COLLECTION = "people";
+    public static final long QUERY_LIMIT = 100;
 }

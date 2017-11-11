@@ -30,12 +30,14 @@ import com.daemo.myfirsttrip.R.layout;
 import com.daemo.myfirsttrip.R.string;
 import com.daemo.myfirsttrip.common.Constants;
 import com.daemo.myfirsttrip.common.Utils;
+import com.google.firebase.firestore.FirebaseFirestore;
 
 import java.util.List;
 
 public class MySuperActivity extends AppCompatActivity
         implements OnNavigationItemSelectedListener, OnFragmentInteractionListener {
 
+    FirebaseFirestore mFirestore;
     private DrawerLayout drawer;
     private ActionBarDrawerToggle toggle;
     private MyBroadcastReceiver tripsReceiver;
@@ -52,7 +54,12 @@ public class MySuperActivity extends AppCompatActivity
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(layout.activity_trips);
-        FragmentManager.enableDebugLogging(true);
+        // Enable Firestore logging
+        FirebaseFirestore.setLoggingEnabled(true);
+
+        // Firestore
+        mFirestore = FirebaseFirestore.getInstance();
+//        initDummyData();
 
         setupActionBar();
 
@@ -60,6 +67,25 @@ public class MySuperActivity extends AppCompatActivity
 
         registerReceiver(tripsReceiver = new MyBroadcastReceiver(), new IntentFilter(Constants.ACTION_TRIP_SELECTED));
     }
+
+//    private void initDummyData() {
+//        for (Trip trip : Data.getTrips(null)) {
+//            DocumentReference curTrip = mFirestore.collection("trips")
+//                    .document(String.valueOf(trip.id));
+//            for (Person person : Data.getPeople(trip))
+//                trip.peopleIds.put(String.valueOf(person.id), 1);
+//
+//            curTrip.set(trip);
+//        }
+//        for (Person person: Data.getPeople(null)) {
+//            DocumentReference curPerson = mFirestore.collection("people")
+//                    .document(String.valueOf(person.id));
+//            for (Trip trip : Data.getTrips(person))
+//                person.trips_ids.put(String.valueOf(trip.id), 1);
+//
+//            curPerson.set(person);
+//        }
+//    }
 
     private void setupDrawer() {
         drawer = findViewById(id.drawer_layout);
@@ -109,7 +135,7 @@ public class MySuperActivity extends AppCompatActivity
         showOkCancelDialog(title, message, okClickListener, null);
     }
 
-    void showOkCancelDialog(final CharSequence title, final String message, final DialogInterface.OnClickListener okClickListener, final DialogInterface.OnClickListener cancelClickListener) {
+    private void showOkCancelDialog(final CharSequence title, final String message, final DialogInterface.OnClickListener okClickListener, final DialogInterface.OnClickListener cancelClickListener) {
         final Activity thisActivity = this;
         this.runOnUiThread(() -> {
             AlertDialog alertDialog = new AlertDialog.Builder(thisActivity)

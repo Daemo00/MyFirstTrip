@@ -18,8 +18,8 @@
     <string name="trip_action2">Action 2</string>
     <string name="trip_subtitle">Trip subtitle</string>
     <string name="people">People</string>
-    <string name="person_title">Person title</string>
-    <string name="person_subtitle">Person subtitle</string>
+    <string name="person_title">Person name</string>
+    <string name="person_subtitle">Person surname</string>
     <string name="nav_people_title">People</string>
     <string name="trips">Trips</string>
     <string name="add_trip">Add trip</string>

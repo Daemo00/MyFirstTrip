@@ -5,19 +5,7 @@
     android:orientation="vertical"
     tools:context="com.daemo.myfirsttrip.TripDetailFragment">
 
-    <android.support.v7.widget.AppCompatEditText
-        android:id="@id/trip_title"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="@string/trip_title"
-        android:textSize="@dimen/trip_title" />
-
-    <android.support.v7.widget.AppCompatEditText
-        android:id="@id/trip_subtitle"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="@string/trip_subtitle"
-        android:textSize="@dimen/trip_subtitle" />
+    <include layout="@layout/trip_card_view_edit" />
 
     <android.support.v7.widget.AppCompatTextView
         android:layout_width="match_parent"

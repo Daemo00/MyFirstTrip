@@ -1,24 +1,76 @@
 package com.daemo.myfirsttrip.models;
 
 
-public class Trip {
-    public final int id;
-    public String title;
-    public String subtitle;
-    public boolean isDraft = false;
-    public int old_id = -1;
+import com.google.firebase.firestore.IgnoreExtraProperties;
 
-    public Trip(int id, String title, String subtitle) {
+import java.util.HashMap;
+import java.util.Map;
+
+@IgnoreExtraProperties
+public class Trip {
+    private String id;
+    private String title;
+    private String subtitle;
+    private boolean isDraft = false;
+    private String oldId = null;
+    private Map<String, Integer> peopleIds;
+
+    public Trip() {
+
+    }
+
+    public Trip(String id, String title, String subtitle) {
         this.id = id;
         this.title = title;
         this.subtitle = subtitle;
+        peopleIds = new HashMap<>();
+    }
+
+    public String getId() {
+        return id;
+    }
+
+    public void setId(String id) {
+        this.id = id;
+    }
+
+    public String getTitle() {
+        return title;
+    }
+
+    public void setTitle(String title) {
+        this.title = title;
+    }
+
+    public String getSubtitle() {
+        return subtitle;
     }
 
     public void setSubtitle(String subtitle) {
         this.subtitle = subtitle;
     }
 
-    public void setTitle(String title) {
-        this.title = title;
+    public boolean isDraft() {
+        return isDraft;
+    }
+
+    public void setDraft(boolean draft) {
+        isDraft = draft;
+    }
+
+    public String getOldId() {
+        return oldId;
+    }
+
+    public void setOldId(String oldId) {
+        this.oldId = oldId;
+    }
+
+    public Map<String, Integer> getPeopleIds() {
+        return peopleIds;
+    }
+
+    public void setPeopleIds(Map<String, Integer> peopleIds) {
+        this.peopleIds = peopleIds;
     }
 }

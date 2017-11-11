@@ -2,198 +2,221 @@ package com.daemo.myfirsttrip.database;
 
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
-import android.util.Pair;
 
+import com.daemo.myfirsttrip.common.Constants;
 import com.daemo.myfirsttrip.models.Person;
 import com.daemo.myfirsttrip.models.Trip;
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.common.base.Strings;
+import com.google.firebase.firestore.DocumentReference;
+import com.google.firebase.firestore.DocumentSnapshot;
+import com.google.firebase.firestore.FieldValue;
+import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.WriteBatch;
 
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Iterator;
+import java.util.HashMap;
 import java.util.List;
-import java.util.Set;
+import java.util.Locale;
+import java.util.Map;
 
 public class Data {
 
-    @SuppressWarnings("SpellCheckingInspection")
-    private static final List<Person> people = new ArrayList<>(Arrays.asList(
-            new Person(0, "Roberta", "Cresta"),
-            new Person(1, "Simone", "Rubino"),
-            new Person(2, "Stefano", "Cresta"),
-            new Person(3, "Valentina", "Rubino")));
-    private static final List<Trip> trips = new ArrayList<>(Arrays.asList(
-            new Trip(0, "Cracovia", "It was nice"),
-            new Trip(1, "Palermo", "It was very nice"),
-            new Trip(2, "Londra", "It was very nice"),
-            new Trip(3, "Madrid", "It was nice")));
-
-    private static final Set<Pair<Integer, Integer>> personTripLinks = new HashSet<>(Arrays.asList(
-            new Pair<>(0, 0),
-            new Pair<>(0, 1),
-            new Pair<>(0, 2),
-            new Pair<>(0, 3),
-            new Pair<>(1, 0),
-            new Pair<>(1, 1),
-//            new Pair<>(1, 2),
-            new Pair<>(1, 3),
-            new Pair<>(2, 0),
-            new Pair<>(2, 1),
-            new Pair<>(2, 2),
-//            new Pair<>(2, 3),
-            new Pair<>(3, 0),
-//            new Pair<>(3, 1),
-            new Pair<>(3, 2),
-            new Pair<>(3, 3)
-    ));
-
-    @Nullable
-    public static Trip getTrip(int id) {
-        for (Trip trip : trips)
-            if (trip.id == id)
-                return trip;
-        return null;
-    }
-
-    @Nullable
-    public static Person getPerson(int id) {
-        for (Person person : people)
-            if (person.id == id)
-                return person;
-        return null;
+    @NonNull
+    public static DocumentReference getTrip(String id) {
+        if (Strings.isNullOrEmpty(id))
+            return FirebaseFirestore.getInstance()
+                    .collection(Constants.TRIPS_COLLECTION)
+                    .document();
+        else
+            return FirebaseFirestore.getInstance()
+                    .collection(Constants.TRIPS_COLLECTION)
+                    .document(id);
     }
 
     @NonNull
-    public static List<Trip> getTrips(@Nullable Person person) {
-        if (person == null) return trips;
-        List<Trip> trips = new ArrayList<>();
-        for (Pair<Integer, Integer> personTripLink : personTripLinks)
-            if (personTripLink.first == person.id)
-                trips.add(getTrip(personTripLink.second));
-        return trips;
+    public static DocumentReference getPerson(String id) {
+        if (Strings.isNullOrEmpty(id))
+            return FirebaseFirestore.getInstance()
+                    .collection(Constants.PEOPLE_COLLECTION)
+                    .document();
+        else
+            return FirebaseFirestore.getInstance()
+                    .collection(Constants.PEOPLE_COLLECTION)
+                    .document(id);
     }
 
-    @NonNull
-    public static List<Person> getPeople(@Nullable Trip trip) {
-        if (trip == null) return people;
-        List<Person> people = new ArrayList<>();
-        for (Pair<Integer, Integer> personTripLink : personTripLinks)
-            if (personTripLink.second == trip.id)
-                people.add(getPerson(personTripLink.first));
-        return people;
+    public static void commitPersonBatch(@NonNull Person person, @Nullable WriteBatch batch, OnCompleteListener<Void> onCompleteListener) {
+        if (batch == null)
+            batch = FirebaseFirestore.getInstance().batch();
+        // Remove the draft flag
+        DocumentReference personDocReference = FirebaseFirestore.getInstance().collection(Constants.PEOPLE_COLLECTION)
+                .document(person.getId());
+        person.setDraft(false);
+        batch.set(personDocReference, person);
+
+        // Delete the old item, if any
+        if (!Strings.isNullOrEmpty(person.getOldId())) {
+            personDocReference = FirebaseFirestore.getInstance().collection(Constants.PEOPLE_COLLECTION)
+                    .document(person.getOldId());
+            deletePersonBatch(personDocReference, batch, onCompleteListener);
+        } else
+            batch.commit().addOnCompleteListener(onCompleteListener);
     }
 
-    @NonNull
-    public static Trip getTripDraft() {
-        Trip trip = new Trip(
-                Collections.max(trips, (t1, t2) -> t1.id - t2.id).id + 1,
-                null,
-                null);
-        trip.isDraft = true;
-        trips.add(trip);
-        return trip;
+    public static void commitTripBatch(@NonNull Trip trip, @Nullable WriteBatch batch, OnCompleteListener<Void> onCompleteListener) {
+        if (batch == null)
+            batch = FirebaseFirestore.getInstance().batch();
+        // Remove the draft flag
+        DocumentReference tripDocReference = FirebaseFirestore.getInstance().collection(Constants.TRIPS_COLLECTION)
+                .document(trip.getId());
+
+        trip.setDraft(false);
+        batch.set(tripDocReference, trip);
+
+        // Delete the old item, if any
+        if (!Strings.isNullOrEmpty(trip.getOldId())) {
+            tripDocReference = FirebaseFirestore.getInstance().collection(Constants.TRIPS_COLLECTION)
+                    .document(trip.getOldId());
+            deleteTripBatch(tripDocReference, batch, onCompleteListener);
+        } else
+            batch.commit().addOnCompleteListener(onCompleteListener);
     }
 
-    @NonNull
-    public static Person getPersonDraft() {
-        Person person = new Person(
-                Collections.max(people, (p1, p2) -> p1.id - p2.id).id + 1,
-                null,
-                null);
-        person.isDraft = true;
-        people.add(person);
-        return person;
+    public static void deletePersonBatch(String id, WriteBatch batch, OnCompleteListener<Void> onCompleteListener) {
+        deletePersonBatch(FirebaseFirestore.getInstance().collection(Constants.PEOPLE_COLLECTION).document(id), batch, onCompleteListener);
     }
 
-//    public static void addPersonTripLink(int personId, int tripId) {
-//        personTripLinks.add(new Pair<>(personId, tripId));
-//    }
-
-    @Nullable
-    public static Person commitPersonDraft(@NonNull Person person) {
-        person.isDraft = false;
-        Person old_person = Data.getPerson(person.old_id);
-        if (old_person != null)
-            Data.removePerson(old_person, null);
-        if (people.contains(person) || people.add(person))
-            return getPerson(person.id);
-        return null;
+    public static void deletePersonBatch(DocumentReference personDocReference, WriteBatch batch, OnCompleteListener<Void> onCompleteListener) {
+        personDocReference.get().addOnCompleteListener(runnable -> deletePersonBatch(runnable.getResult(), batch, onCompleteListener));
     }
 
-    @Nullable
-    public static Trip commitTripDraft(@NonNull Trip trip) {
-        trip.isDraft = false;
-        Trip old_trip = Data.getTrip(trip.old_id);
-        if (old_trip != null)
-            Data.removeTrip(old_trip, null);
-        if (trips.contains(trip) || trips.add(trip))
-            return getTrip(trip.id);
-        return null;
+    private static void deletePersonBatch(DocumentSnapshot personDocSnapshot, WriteBatch batch, OnCompleteListener<Void> onCompleteListener) {
+        if (!personDocSnapshot.exists()) return;
+        DocumentReference personDocReference = personDocSnapshot.getReference();
+        Person person = personDocSnapshot.toObject(Person.class);
+        if (batch == null)
+            batch = personDocSnapshot.getReference().getFirestore().batch();
+        // Delete the person
+        batch.delete(personDocReference);
+
+        // Delete all its links in other trips it references!
+        List<DocumentReference> tripDocReferences = new ArrayList<>();
+        for (Map.Entry<String, Integer> tripEntry : person.trips_ids.entrySet())
+            tripDocReferences.add(personDocReference.getFirestore()
+                    .collection(Constants.TRIPS_COLLECTION)
+                    .document(tripEntry.getKey()));
+
+        Map<String, Object> updates = new HashMap<>();
+        updates.put(String.format(Locale.getDefault(), "peopleIds.%s", person.id), FieldValue.delete());
+
+        for (DocumentReference tripDocReference : tripDocReferences)
+            batch.update(tripDocReference, updates);
+
+        batch.commit().addOnCompleteListener(onCompleteListener);
     }
 
-    /**
-     * If person is null remove the trip and all its links
-     */
-    public static void removeTrip(Trip trip, @Nullable Person person) {
-        if (person == null) trips.remove(trip);
-        Iterator<Pair<Integer, Integer>> iterator = personTripLinks.iterator();
-        while (iterator.hasNext()) {
-            Pair<Integer, Integer> next = iterator.next();
-            if (next.second == trip.id && (person == null || next.first == person.id))
-                iterator.remove();
-        }
+    public static void deleteTripBatch(String id, WriteBatch batch, OnCompleteListener<Void> onCompleteListener) {
+        deleteTripBatch(FirebaseFirestore.getInstance().collection(Constants.TRIPS_COLLECTION).document(id), batch, onCompleteListener);
     }
 
-    /**
-     * If trip is null remove the person and all its links
-     */
-    public static void removePerson(Person person, @Nullable Trip trip) {
-        if (trip == null) people.remove(person);
-        Iterator<Pair<Integer, Integer>> iterator = personTripLinks.iterator();
-        while (iterator.hasNext()) {
-            Pair<Integer, Integer> next = iterator.next();
-            if (next.first == person.id && (trip == null || next.second == trip.id))
-                iterator.remove();
-        }
+    private static void deleteTripBatch(DocumentReference tripDocReference, WriteBatch batch, OnCompleteListener<Void> onCompleteListener) {
+        tripDocReference.get().addOnCompleteListener(runnable -> deleteTripBatch(runnable.getResult(), batch, onCompleteListener));
     }
 
-    public static boolean addTrip(Trip trip, Set<Integer> selected_person_ids) {
-        boolean res = trips.add(trip);
-        if (!res) return false;
-        for (Integer selected_person_id : selected_person_ids)
-            res &= personTripLinks.add(new Pair<>(selected_person_id, trip.id));
-        return res;
+    public static void deleteTripBatch(DocumentSnapshot tripDocSnapshot, WriteBatch batch, OnCompleteListener<Void> onCompleteListener) {
+        DocumentReference tripDocReference = tripDocSnapshot.getReference();
+        if (!tripDocSnapshot.exists()) return;
+        Trip trip = tripDocSnapshot.toObject(Trip.class);
+        if (batch == null)
+            batch = tripDocReference.getFirestore().batch();
+        // Delete the trip
+        batch.delete(tripDocReference);
+
+        // Delete all its links in other people it references!
+        List<DocumentReference> personDocReferences = new ArrayList<>();
+        for (Map.Entry<String, Integer> personEntry : trip.getPeopleIds().entrySet())
+            personDocReferences.add(tripDocReference.getFirestore()
+                    .collection(Constants.TRIPS_COLLECTION)
+                    .document(personEntry.getKey()));
+
+        Map<String, Object> updates = new HashMap<>();
+        updates.put(String.format(Locale.getDefault(), "peopleIds.%s", trip.getId()), FieldValue.delete());
+
+        for (DocumentReference personDocReference : personDocReferences)
+            personDocReference.update(updates);
+
+        batch.commit().addOnCompleteListener(onCompleteListener);
     }
 
-    public static boolean addPerson(Person person, Set<Integer> selected_trip_ids) {
-        boolean res = people.add(person);
-        if (!res) return false;
-        for (Integer selected_trip_id : selected_trip_ids)
-            res &= personTripLinks.add(new Pair<>(person.id, selected_trip_id));
-        return res;
+    public static DocumentReference updatePersonBatch(Person person, WriteBatch batch, OnCompleteListener<Void> onCompleteListener) {
+        if (batch == null)
+            batch = FirebaseFirestore.getInstance().batch();
+        DocumentReference personDocReference = FirebaseFirestore.getInstance().collection(Constants.PEOPLE_COLLECTION).document(person.id);
+        batch.set(personDocReference, person);
+
+        // Update all its links in other trips it references!
+        List<DocumentReference> tripDocReferences = new ArrayList<>();
+        for (Map.Entry<String, Integer> tripEntry : person.trips_ids.entrySet())
+            tripDocReferences.add(personDocReference.getFirestore()
+                    .collection(Constants.TRIPS_COLLECTION)
+                    .document(tripEntry.getKey()));
+
+        Map<String, Object> updates = new HashMap<>();
+        updates.put(String.format(Locale.getDefault(), "peopleIds.%s", person.id), 1);
+
+        for (DocumentReference tripDocReference : tripDocReferences)
+            batch.update(tripDocReference, updates);
+
+        batch.commit().addOnCompleteListener(onCompleteListener);
+        return personDocReference;
     }
 
-    public static Trip getTripDraft(Trip trip) {
-        Trip draft = getTripDraft();
-        draft.title = trip.title;
-        draft.subtitle = trip.subtitle;
-        draft.old_id = trip.id;
-        List<Person> people = getPeople(trip);
-        for (Person person : people)
-            personTripLinks.add(new Pair<>(person.id, draft.id));
+    public static DocumentReference updateTripBatch(Trip trip, WriteBatch batch, OnCompleteListener<Void> onCompleteListener) {
+        if (batch == null)
+            batch = FirebaseFirestore.getInstance().batch();
+        DocumentReference tripDocReference = FirebaseFirestore.getInstance()
+                .collection(Constants.TRIPS_COLLECTION).document(trip.getId());
+        batch.set(tripDocReference, trip);
+
+        // Update all its links in other people it references!
+        List<DocumentReference> personDocReferences = new ArrayList<>();
+        for (Map.Entry<String, Integer> personEntry : trip.getPeopleIds().entrySet())
+            personDocReferences.add(tripDocReference.getFirestore()
+                    .collection(Constants.TRIPS_COLLECTION)
+                    .document(personEntry.getKey()));
+
+        Map<String, Object> updates = new HashMap<>();
+        updates.put(String.format(Locale.getDefault(), "peopleIds.%s", trip.getId()), 1);
+
+        for (DocumentReference personDocReference : personDocReferences)
+            personDocReference.update(updates);
+
+        batch.commit().addOnCompleteListener(onCompleteListener);
+        return tripDocReference;
+    }
+
+    public static Trip createDraftTripBatch(Trip trip, WriteBatch batch, OnCompleteListener<Void> onCompleteListener) {
+        if (batch == null)
+            batch = FirebaseFirestore.getInstance().batch();
+        DocumentReference draftTripDocReference = FirebaseFirestore.getInstance().collection(Constants.TRIPS_COLLECTION).document();
+        Trip draft = new Trip(draftTripDocReference.getId(), trip.getTitle(), trip.getSubtitle());
+        draft.setOldId(trip.getId());
+        draft.setDraft(true);
+        batch.set(draftTripDocReference, draft);
+        batch.commit().addOnCompleteListener(onCompleteListener);
         return draft;
     }
 
-    public static Person getPersonDraft(Person person) {
-        Person draft = getPersonDraft();
-        draft.name = person.name;
-        draft.surname = person.surname;
-        draft.old_id = person.id;
-        List<Trip> trips = getTrips(person);
-        for (Trip trip : trips)
-            personTripLinks.add(new Pair<>(draft.id, trip.id));
-
+    public static Person createDraftPersonBatch(Person person, WriteBatch batch, OnCompleteListener<Void> onCompleteListener) {
+        if (batch == null)
+            batch = FirebaseFirestore.getInstance().batch();
+        DocumentReference draftPersonDocReference = FirebaseFirestore.getInstance().collection(Constants.PEOPLE_COLLECTION).document();
+        Person draft = new Person(draftPersonDocReference.getId(), person.getName(), person.getSurname());
+        draft.setOldId(person.getId());
+        draft.setDraft(true);
+        batch.set(draftPersonDocReference, draft);
+        batch.commit().addOnCompleteListener(onCompleteListener);
         return draft;
     }
 }

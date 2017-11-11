@@ -5,7 +5,6 @@ import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.FragmentManager;
-import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -18,12 +17,22 @@ import android.widget.TextView;
 import com.daemo.myfirsttrip.common.Constants;
 import com.daemo.myfirsttrip.database.Data;
 import com.daemo.myfirsttrip.models.Person;
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.Task;
+import com.google.firebase.firestore.DocumentReference;
+import com.google.firebase.firestore.DocumentSnapshot;
+import com.google.firebase.firestore.EventListener;
+import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.FirebaseFirestoreException;
+import com.google.firebase.firestore.ListenerRegistration;
 
 
-public class PersonDetailFragment extends MySuperFragment {
-    private Person person;
-    private boolean isNewMode;
+public class PersonDetailFragment extends MySuperFragment implements EventListener<DocumentSnapshot>, OnCompleteListener<Void> {
     private boolean isEditMode;
+    private boolean isNewMode;
+    private DocumentReference personRef;
+    private ListenerRegistration listenerRegistration;
+    private Person person;
 
 
     public PersonDetailFragment() {
@@ -36,24 +45,18 @@ public class PersonDetailFragment extends MySuperFragment {
         Bundle args = getArguments();
         if (args == null) {
             // From people list, add a person
-            person = Data.getPersonDraft();
             isNewMode = true;
         } else if (args.containsKey(Constants.EXTRA_PERSON_ID)) {
             // Click on a person to see details
-            person = Data.getPerson(args.getInt(Constants.EXTRA_PERSON_ID));
+            String personId = args.getString(Constants.EXTRA_PERSON_ID);
+            personRef = Data.getPerson(personId);
             if (args.containsKey(Constants.EXTRA_EDIT)) {
                 // Click on a person for edit
                 // Make a copy and work on it, in case user doesn't confirm
-                person = Data.getPersonDraft(person);
                 isEditMode = true;
+                personRef = Data.getPerson(personId);
             }
         }
-//        else if (args.containsKey(Constants.EXTRA_TRIP_ID)) {
-//            // From the trip, add a person
-//            person = Data.getPersonDraft();
-//            Trip trip = Data.getTrip(args.getInt(Constants.EXTRA_TRIP_ID));
-//            if (trip != null) Data.addPersonTripLink(person.id, trip.id);
-//        }
     }
 
     @Override
@@ -64,7 +67,6 @@ public class PersonDetailFragment extends MySuperFragment {
         View root = isNewMode || isEditMode ?
                 inflater.inflate(R.layout.fragment_person_edit, container, false) :
                 inflater.inflate(R.layout.fragment_person_detail, container, false);
-
         if (parent instanceof ViewGroup) {
             ViewGroup viewGroup = (ViewGroup) parent;
             viewGroup.addView(root);
@@ -72,6 +74,27 @@ public class PersonDetailFragment extends MySuperFragment {
         }
 
         return root;
+    }
+
+    @Override
+    public void onStart() {
+        super.onStart();
+        if (!isNewMode)
+            listenerRegistration = personRef.addSnapshotListener(this);
+    }
+
+    @Override
+    public void onRefresh() {
+
+    }
+
+    @Override
+    public void onStop() {
+        super.onStop();
+        if (listenerRegistration != null) {
+            listenerRegistration.remove();
+            listenerRegistration = null;
+        }
     }
 
     @Override
@@ -86,8 +109,6 @@ public class PersonDetailFragment extends MySuperFragment {
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-//        if (TripsListFragment.tripsMenuItemSelected(item, mListener))
-//            return true;
         switch (item.getItemId()) {
             case R.id.clear_person:
                 cleanData();
@@ -98,9 +119,9 @@ public class PersonDetailFragment extends MySuperFragment {
             case R.id.confirm_person:
                 return confirmPerson();
             case R.id.edit_person:
-                if (person.isDraft)
+                if (person.isDraft())
                     getMySuperActivity().showOkCancelDialog("Confirm",
-                            "Confirm the current modifications before choosing other trips",
+                            "Confirm the current modifications before choosing other trips_ids",
                             (dialogInterface, i) -> confirmPerson());
                 else
                     editPerson();
@@ -112,11 +133,11 @@ public class PersonDetailFragment extends MySuperFragment {
         return super.onOptionsItemSelected(item);
     }
 
-    void chooseTrip() {
+    private void chooseTrip() {
         Bundle b = new Bundle();
         Bundle bb = new Bundle();
         bb.putBoolean(Constants.EXTRA_CHOOSE, true);
-        bb.putInt(Constants.EXTRA_PERSON_ID, person.id);
+        bb.putString(Constants.EXTRA_PERSON_ID, person.getId());
         b.putBundle(Constants.EXTRA_BUNDLE_FOR_FRAGMENT, bb);
         b.putBoolean(Constants.EXTRA_ADD_TO_BACKSTACK, true);
         b.putString(Constants.EXTRA_REPLACE_FRAGMENT, TripsListFragment.class.getName());
@@ -125,7 +146,7 @@ public class PersonDetailFragment extends MySuperFragment {
 
     @Override
     public boolean allowBackPress() {
-        if (person.isDraft) {
+        if (person.isDraft()) {
             getMySuperActivity().showOkCancelDialog("Confirm",
                     "Confirm the current modifications?",
                     (dialogInterface, i) -> confirmPerson());
@@ -141,11 +162,8 @@ public class PersonDetailFragment extends MySuperFragment {
             person.setName(((EditText) root.findViewById(R.id.person_name)).getText().toString());
             person.setSurname(((EditText) root.findViewById(R.id.person_surname)).getText().toString());
         }
-        Person committedPerson = Data.commitPersonDraft(person);
-        if (committedPerson == null) {
-            getMySuperActivity().showToast("Person not committed");
-            return false;
-        }
+        setRefreshing(true);
+        Data.commitPersonBatch(person, null, task -> setRefreshing(false));
         // needed, otherwise this fragment isn't correctly removed
         FragmentManager fragmentManager = getFragmentManager();
         if (fragmentManager != null) {
@@ -155,18 +173,19 @@ public class PersonDetailFragment extends MySuperFragment {
 
         Bundle b = new Bundle();
         Bundle bb = new Bundle();
-        bb.putInt(Constants.EXTRA_PERSON_ID, committedPerson.id);
+        bb.putString(Constants.EXTRA_PERSON_ID, person.getId());
         b.putBundle(Constants.EXTRA_BUNDLE_FOR_FRAGMENT, bb);
         b.putBoolean(Constants.EXTRA_ADD_TO_BACKSTACK, true);
         b.putString(Constants.EXTRA_REPLACE_FRAGMENT, PersonDetailFragment.class.getName());
         mListener.onFragmentInteraction(b);
+
         return true;
     }
 
     private void editPerson() {
         Bundle b = new Bundle();
         Bundle bb = new Bundle();
-        bb.putInt(Constants.EXTRA_PERSON_ID, person.id);
+        bb.putString(Constants.EXTRA_PERSON_ID, person.id);
         bb.putBoolean(Constants.EXTRA_EDIT, true);
         b.putBundle(Constants.EXTRA_BUNDLE_FOR_FRAGMENT, bb);
         b.putBoolean(Constants.EXTRA_ADD_TO_BACKSTACK, true);
@@ -177,26 +196,34 @@ public class PersonDetailFragment extends MySuperFragment {
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-        if (person.isDraft) loadEditLayoutPerson(view);
-        else loadLayoutPerson(view);
+        if (isNewMode) {
+            String newId = FirebaseFirestore.getInstance().collection(Constants.PEOPLE_COLLECTION).document().getId();
+            person = new Person(newId, null, null);
+        } else {
+            setRefreshing(true);
+        }
     }
 
-    private void loadEditLayoutPerson(@NonNull View view) {
+    private void loadEditLayoutPerson(@Nullable View view) {
+        if (view == null) return;
         EditText person_name = view.findViewById(R.id.person_name);
         person_name.setText(person.name);
         EditText person_surname = view.findViewById(R.id.person_surname);
         person_surname.setText(person.surname);
-        RecyclerView people_joined = view.findViewById(R.id.list_trips);
-        TripsListFragment.fillListView(this, people_joined, person, null, false);
+        // TODO insert the list fragment
+//        RecyclerView people_joined = view.findViewById(R.id.list_trips);
+//        TripsListFragment.fillListView(this, people_joined, person, null, false);
     }
 
-    private void loadLayoutPerson(@NonNull View view) {
+    private void loadLayoutPerson(@Nullable View view) {
+        if (view == null) return;
         TextView person_name = view.findViewById(R.id.person_name);
         person_name.setText(person.name);
         TextView person_surname = view.findViewById(R.id.person_surname);
         person_surname.setText(person.surname);
-        RecyclerView people_joined = view.findViewById(R.id.list_trips);
-        TripsListFragment.fillListView(this, people_joined, person, null, true);
+        // TODO insert the list fragment
+//        RecyclerView people_joined = view.findViewById(R.id.list_trips);
+//        TripsListFragment.fillListView(this, people_joined, person, null, true);
     }
 
     @Override
@@ -205,8 +232,40 @@ public class PersonDetailFragment extends MySuperFragment {
         cleanData();
     }
 
-    void cleanData() {
-        if (person.isDraft)
-            Data.removePerson(person, null);
+    private void cleanData() {
+        if (person.isDraft()) {
+            Data.deletePersonBatch(person.id, null, this);
+        }
+    }
+
+    @Override
+    public void onEvent(DocumentSnapshot documentSnapshot, FirebaseFirestoreException e) {
+        if (e != null) {
+            getMySuperActivity().showToast(e.getMessage());
+            return;
+        }
+
+        if (!documentSnapshot.exists())
+            return;
+        person = documentSnapshot.toObject(Person.class);
+        String newId = FirebaseFirestore.getInstance().collection(Constants.PEOPLE_COLLECTION).document().getId();
+
+        if (isNewMode) {
+            person.setId(newId);
+        } else if (isEditMode) {
+            // Work on a copy, in case user doesn't confirm
+            person = Data.createDraftPersonBatch(person, null, task -> {
+            });
+            loadEditLayoutPerson(getView());
+        } else
+            loadLayoutPerson(getView());
+        setRefreshing(false);
+    }
+
+    @Override
+    public void onComplete(@NonNull Task<Void> task) {
+        if (task.getException() != null)
+            getMySuperActivity().showToast(task.getException().getMessage());
+        setRefreshing(false);
     }
 }

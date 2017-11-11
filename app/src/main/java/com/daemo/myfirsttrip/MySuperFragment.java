@@ -14,19 +14,21 @@ import android.view.ViewGroup;
 import android.view.ViewGroup.LayoutParams;
 
 import com.daemo.myfirsttrip.R.id;
+import com.daemo.myfirsttrip.adapter.FirestoreAdapter;
 import com.daemo.myfirsttrip.common.Utils;
 
 import java.util.Arrays;
 
 public class MySuperFragment extends Fragment implements OnRefreshListener {
     final String title = Utils.getTag(this);
-    MySuperFragment.OnFragmentInteractionListener mListener;
+    public MySuperFragment.OnFragmentInteractionListener mListener;
+    FirestoreAdapter mAdapter;
 
     public MySuperFragment() {
         Log.d(Utils.getTag(this), "Called constructor");
     }
 
-    MySuperActivity getMySuperActivity() {
+    public MySuperActivity getMySuperActivity() {
         if (getActivity() instanceof MySuperActivity) return (MySuperActivity) getActivity();
         return null;
     }
@@ -42,7 +44,7 @@ public class MySuperFragment extends Fragment implements OnRefreshListener {
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View view = super.onCreateView(inflater, container, savedInstanceState);
-        SwipeRefreshLayout swipeRefreshLayout = getSwipeRefreshLayout();
+        SwipeRefreshLayout swipeRefreshLayout = generateSwipeRefreshLayout();
         if (view instanceof ViewGroup) {
             ViewGroup viewGroup = (ViewGroup) view;
             viewGroup.addView(swipeRefreshLayout);
@@ -52,7 +54,22 @@ public class MySuperFragment extends Fragment implements OnRefreshListener {
         return swipeRefreshLayout;
     }
 
-    private SwipeRefreshLayout getSwipeRefreshLayout() {
+    @Override
+    public void onStart() {
+        super.onStart();
+        if (mAdapter != null)
+            mAdapter.startListening();
+    }
+
+    @Override
+    public void onStop() {
+        super.onStop();
+        if (mAdapter != null) {
+            mAdapter.stopListening();
+        }
+    }
+
+    private SwipeRefreshLayout generateSwipeRefreshLayout() {
         Context context = getContext();
         if (context == null)
             return null;
@@ -67,16 +84,16 @@ public class MySuperFragment extends Fragment implements OnRefreshListener {
 
     @Override
     public void onRefresh() {
-        stopRefreshing();
+        setRefreshing(false);
     }
 
-    private void stopRefreshing() {
+    public void setRefreshing(boolean isRefreshing) {
         View view = getView();
         if (view != null) {
             View layout = view.findViewById(id.swipe_layout_superFragment);
             if (layout instanceof SwipeRefreshLayout) {
                 SwipeRefreshLayout swipeRefreshLayout = (SwipeRefreshLayout) layout;
-                swipeRefreshLayout.setRefreshing(false);
+                swipeRefreshLayout.setRefreshing(isRefreshing);
             }
         }
     }
@@ -118,7 +135,7 @@ public class MySuperFragment extends Fragment implements OnRefreshListener {
      * "http://developer.android.com/training/basics/fragments/communicating.html"
      * >Communicating with Other Fragments</a> for more information.
      */
-    interface OnFragmentInteractionListener {
+    public interface OnFragmentInteractionListener {
         void onFragmentInteraction(Bundle bundle);
     }
 }

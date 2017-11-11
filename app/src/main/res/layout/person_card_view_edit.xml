@@ -36,14 +36,14 @@
                 android:paddingStart="0dp"
                 android:paddingTop="16dp">
 
-                <android.support.v7.widget.AppCompatTextView
+                <android.support.v7.widget.AppCompatEditText
                     android:id="@+id/person_name"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:hint="@string/person_title"
                     android:textSize="@dimen/person_title" />
 
-                <android.support.v7.widget.AppCompatTextView
+                <android.support.v7.widget.AppCompatEditText
                     android:id="@+id/person_surname"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
