@@ -27,21 +27,23 @@ import com.google.firebase.firestore.FirebaseFirestoreException;
 import com.google.firebase.firestore.ListenerRegistration;
 import com.google.firebase.firestore.Query;
 
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Set;
 
 
 public class TripsListFragment extends MySuperFragment implements EventListener<DocumentSnapshot> {
 
-    private boolean isChooseMode;
     private RecyclerView mRecyclerView;
     /**
-     * When this fragment is summoned to add trips_ids to a person, this is that person
+     * When this fragment is summoned to add tripsIds to a person, this is that person
      */
     private Person orig_person;
     private ListenerRegistration listenerRegistration;
     private DocumentReference personDocReference;
+    private ListFragmentMode currStatus;
 
     public TripsListFragment() {
         // Required empty public constructor
@@ -51,11 +53,15 @@ public class TripsListFragment extends MySuperFragment implements EventListener<
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         Bundle args = getArguments();
-        if (args == null) return;
-        if (args.containsKey(Constants.EXTRA_CHOOSE))
-            isChooseMode = args.getBoolean(Constants.EXTRA_CHOOSE);
-        if (args.containsKey(Constants.EXTRA_PERSON_ID)) {
+        if (args == null || args.isEmpty()) {
+            currStatus = ListFragmentMode.ALL;
+        } else if (args.containsKey(Constants.EXTRA_PERSON_ID)) {
             personDocReference = Data.getPerson(args.getString(Constants.EXTRA_PERSON_ID));
+            currStatus = ListFragmentMode.NESTED;
+            if (args.containsKey(Constants.EXTRA_CHOOSE) && args.getBoolean(Constants.EXTRA_CHOOSE))
+                currStatus = ListFragmentMode.CHOOSE;
+            if (args.containsKey(Constants.EXTRA_EDIT) && args.getBoolean(Constants.EXTRA_EDIT))
+                currStatus = ListFragmentMode.NESTED_EDIT;
         }
     }
 
@@ -78,63 +84,107 @@ public class TripsListFragment extends MySuperFragment implements EventListener<
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
         mRecyclerView = view.findViewById(R.id.list_trips);
-        fillListView();
+        switch (currStatus) {
+            case CHOOSE:
+            case NESTED:
+            case NESTED_EDIT:
+                // List will be updated when personDocReference is resolved
+                break;
+            case ALL:
+                fillListView();
+                break;
+        }
     }
 
     @Override
     public void onStart() {
         super.onStart();
-        if (personDocReference != null && listenerRegistration == null)
-            listenerRegistration = personDocReference.addSnapshotListener(this);
+        switch (currStatus) {
+            case CHOOSE:
+            case NESTED:
+            case NESTED_EDIT:
+                if (listenerRegistration == null)
+                    listenerRegistration = personDocReference.addSnapshotListener(this);
+                break;
+            case ALL:
+                break;
+        }
     }
 
     @Override
     public void onStop() {
         super.onStop();
-        if (listenerRegistration != null) {
-            listenerRegistration.remove();
-            listenerRegistration = null;
+        switch (currStatus) {
+            case CHOOSE:
+            case NESTED:
+            case NESTED_EDIT:
+                if (listenerRegistration != null) {
+                    listenerRegistration.remove();
+                    listenerRegistration = null;
+                }
+                break;
+            case ALL:
+                break;
         }
     }
 
     private void fillListView() {
         FirebaseFirestore mFirestore = getMySuperActivity().mFirestore;
-        Query query;
+        Query query = null;
         Set<String> selected_ids = new HashSet<>();
-        if (isChooseMode && orig_person != null) {
-            // Get all trips and populate selected_ids
-            query = mFirestore.collection(Constants.TRIPS_COLLECTION);
-            selected_ids.addAll(orig_person.getTrips_ids().keySet());
-        } else if (orig_person != null) {
-            // Get only trips in orig_person
-            query = mFirestore.collection(Constants.TRIPS_COLLECTION)
-                    .whereEqualTo(String.format(Locale.getDefault(), "peopleIds.%s", orig_person.id), 1)
-                    .limit(Constants.QUERY_LIMIT);
-        } else {
-            // Get all the trips!
-            query = mFirestore.collection(Constants.TRIPS_COLLECTION)
-                    .limit(Constants.QUERY_LIMIT);
-        }
         mRecyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
         mRecyclerView.setHasFixedSize(true);
-        mAdapter = new TripsAdapter(this, query, selected_ids);
-        mAdapter.isChooseMode(isChooseMode);
-        mRecyclerView.setAdapter(mAdapter);
-        if (orig_person == null) {
-            // Allow edit on the list only if we are in the main list
-            ItemTouchHelper.Callback callback = new SimpleItemTouchHelperCallback(mAdapter);
-            ItemTouchHelper touchHelper = new ItemTouchHelper(callback);
-            touchHelper.attachToRecyclerView(mRecyclerView);
+        switch (currStatus) {
+            case CHOOSE:
+                if (orig_person != null) {
+                    // Get all trips and populate selected_ids
+                    query = mFirestore.collection(Constants.TRIPS_COLLECTION)
+                            .limit(Constants.QUERY_LIMIT);
+                    selected_ids.addAll(orig_person.getTripsIds().keySet());
+                    mAdapter = new TripsAdapter(this, query, selected_ids);
+                }
+                break;
+            case NESTED:
+            case NESTED_EDIT:
+                if (orig_person != null) {
+                    // Get only trips in orig_person
+                    query = mFirestore.collection(Constants.TRIPS_COLLECTION)
+                            .whereEqualTo(String.format(Locale.getDefault(), "peopleIds.%s", orig_person.getId()), 1)
+                            .limit(Constants.QUERY_LIMIT);
+                    mAdapter = new TripsAdapter(this, query, selected_ids);
+                }
+                break;
+            case ALL:
+                // Get all the trips!
+                query = mFirestore.collection(Constants.TRIPS_COLLECTION)
+                        .limit(Constants.QUERY_LIMIT);
+                mAdapter = new TripsAdapter(this, query, selected_ids);
+                // Allow edit on the list only if we are in the main list
+                ItemTouchHelper.Callback callback = new SimpleItemTouchHelperCallback(mAdapter);
+                ItemTouchHelper touchHelper = new ItemTouchHelper(callback);
+                touchHelper.attachToRecyclerView(mRecyclerView);
+                break;
         }
+        mAdapter.setChooseMode(currStatus.equals(ListFragmentMode.CHOOSE));
+        mAdapter.setClickable(!currStatus.equals(ListFragmentMode.NESTED_EDIT));
+        mAdapter.startListening();
+        mRecyclerView.setAdapter(mAdapter);
     }
 
     @Override
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
         super.onCreateOptionsMenu(menu, inflater);
-        if (isChooseMode)
-            inflater.inflate(R.menu.trips_list_choose, menu);
-        else
-            inflater.inflate(R.menu.trips_list, menu);
+        switch (currStatus) {
+            case CHOOSE:
+                inflater.inflate(R.menu.trips_list_choose, menu);
+                break;
+            case NESTED:
+            case NESTED_EDIT:
+                break;
+            case ALL:
+                inflater.inflate(R.menu.trips_list, menu);
+                break;
+        }
     }
 
     @Override
@@ -146,23 +196,26 @@ public class TripsListFragment extends MySuperFragment implements EventListener<
                 b.putString(Constants.EXTRA_REPLACE_FRAGMENT, TripDetailFragment.class.getName());
                 mListener.onFragmentInteraction(b);
                 return true;
-            case R.id.confirm_trip:
+            case R.id.confirm_selection:
                 return confirmSelection();
         }
         return super.onOptionsItemSelected(item);
     }
 
     private boolean confirmSelection() {
-        // Update the orig_person
-        orig_person.getTrips_ids().clear();
+        // Update the orig_person with the selected trips
+        if (!orig_person.isDraft())
+            getMySuperActivity().showToast("Something went wrong, this should be a draft");
+        Map<String, Integer> selected_tripsIds = new HashMap<>();
         for (Object selected_id : mAdapter.selected_ids)
             if (selected_id instanceof String) {
                 String selectedId = (String) selected_id;
-                orig_person.trips_ids.put(selectedId, 1);
+                selected_tripsIds.put(selectedId, 1);
             }
+        orig_person.setTripsIds(selected_tripsIds);
 
         setRefreshing(true);
-        Data.updatePersonBatch(orig_person, null, task -> {
+        Data.updatePersonBatch(orig_person, mAdapter.unselected_ids, null, task -> {
             FragmentManager fragmentManager = getFragmentManager();
             if (fragmentManager != null)
                 // Go back to whoever called this
@@ -176,11 +229,19 @@ public class TripsListFragment extends MySuperFragment implements EventListener<
 
     @Override
     public boolean allowBackPress() {
-        if (orig_person != null && orig_person.isDraft()) {
-            getMySuperActivity().showOkCancelDialog("Confirm",
-                    "Confirm the current modifications?",
-                    (dialogInterface, i) -> confirmSelection());
-            return false;
+        switch (currStatus) {
+            case CHOOSE:
+            case NESTED:
+            case NESTED_EDIT:
+//                if (orig_person != null && orig_person.isDraft()) {
+//                    getMySuperActivity().showOkCancelDialog("Confirm",
+//                            "Confirm the current modifications?",
+//                            (dialogInterface, i) -> confirmSelection());
+//                    return false;
+//                }
+                break;
+            case ALL:
+                break;
         }
         return super.allowBackPress();
     }
@@ -189,6 +250,7 @@ public class TripsListFragment extends MySuperFragment implements EventListener<
     public void onEvent(DocumentSnapshot documentSnapshot, FirebaseFirestoreException e) {
         if (e != null) {
             getMySuperActivity().showToast(e.getMessage());
+            return;
         }
         orig_person = documentSnapshot.toObject(Person.class);
         fillListView();

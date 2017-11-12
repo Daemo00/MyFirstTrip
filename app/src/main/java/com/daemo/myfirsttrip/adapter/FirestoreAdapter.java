@@ -35,9 +35,11 @@ public abstract class FirestoreAdapter<VH extends RecyclerView.ViewHolder>
     final MySuperFragment fragment;
     final Set<Integer> selected_positions = new HashSet<>();
     private final ArrayList<DocumentSnapshot> mSnapshots = new ArrayList<>();
-    public Set<String> selected_ids = new HashSet<>();
+    public Set<String> selected_ids = new HashSet<String>();
+    public Set<String> unselected_ids = new HashSet<String>();
     public Query mQuery;
     boolean isChooseMode;
+    boolean isClickable;
     private ListenerRegistration mRegistration;
 
     FirestoreAdapter(MySuperFragment fragment, Query query, Set<String> selected_ids) {
@@ -177,8 +179,12 @@ public abstract class FirestoreAdapter<VH extends RecyclerView.ViewHolder>
         notifyItemMoved(fromPosition, toPosition);
     }
 
-    public void isChooseMode(boolean isChooseMode) {
+    public void setChooseMode(boolean isChooseMode) {
         this.isChooseMode = isChooseMode;
-        boolean isClickable = !isChooseMode;
+        this.isClickable = !isChooseMode;
+    }
+
+    public void setClickable(boolean clickable) {
+        this.isClickable = clickable;
     }
 }

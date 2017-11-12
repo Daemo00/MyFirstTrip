@@ -12,11 +12,10 @@
         android:layout_height="wrap_content"
         android:text="@string/people" />
 
-    <android.support.v7.widget.RecyclerView
-        android:id="@id/list_people"
+    <FrameLayout
+        android:id="@+id/fragment_people_list"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:paddingTop="8dp"
-        tools:listitem="@layout/person_card_view" />
+        android:layout_height="match_parent"
+        tools:layout="@layout/fragment_people_list" />
 
 </android.support.v7.widget.LinearLayoutCompat>

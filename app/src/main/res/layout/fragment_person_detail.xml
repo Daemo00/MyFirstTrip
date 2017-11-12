@@ -12,9 +12,8 @@
         android:layout_height="wrap_content"
         android:text="@string/trips" />
 
-    <fragment
+    <FrameLayout
         android:id="@+id/fragment_trips_list"
-        android:name="com.daemo.myfirsttrip.TripsListFragment"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         tools:layout="@layout/fragment_trips_list" />

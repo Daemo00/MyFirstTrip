@@ -12,11 +12,10 @@
         android:layout_height="wrap_content"
         android:text="@string/trips" />
 
-    <android.support.v7.widget.RecyclerView
-        android:id="@id/list_trips"
+    <FrameLayout
+        android:id="@+id/fragment_trips_list"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:paddingTop="8dp"
-        tools:listitem="@layout/trip_card_view" />
+        tools:layout="@layout/fragment_trips_list" />
 
 </android.support.v7.widget.LinearLayoutCompat>

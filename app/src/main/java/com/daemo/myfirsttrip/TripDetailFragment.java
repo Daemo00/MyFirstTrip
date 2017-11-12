@@ -4,6 +4,7 @@ package com.daemo.myfirsttrip;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -28,11 +29,10 @@ import com.google.firebase.firestore.ListenerRegistration;
 
 
 public class TripDetailFragment extends MySuperFragment implements EventListener<DocumentSnapshot>, OnCompleteListener<Void> {
-    private boolean isEditMode;
-    private boolean isNewMode;
     private DocumentReference tripRef;
     private ListenerRegistration listenerRegistration;
     private Trip trip;
+    private DetailFragmentMode currStatus;
 
 
     public TripDetailFragment() {
@@ -43,19 +43,31 @@ public class TripDetailFragment extends MySuperFragment implements EventListener
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         Bundle args = getArguments();
-        if (args == null) {
-            // From trips_ids list, add a trip
-            isNewMode = true;
-        } else if (args.containsKey(Constants.EXTRA_TRIP_ID)) {
+        if (args == null || args.isEmpty()) {
+            // From tripsIds list, add a trip
+            currStatus = DetailFragmentMode.NEW;
+            return;
+        }
+
+        if (args.containsKey(Constants.EXTRA_TRIP_ID) &&
+                args.containsKey(Constants.EXTRA_EDIT) && args.getBoolean(Constants.EXTRA_EDIT)) {
+            // Click on a trip for edit
+            currStatus = DetailFragmentMode.EDIT;
+            Data.createDraftTripFromRef(Data.getTrip(args.getString(Constants.EXTRA_TRIP_ID)), task -> {
+                if (task.getException() != null) {
+                    getMySuperActivity().showToast(task.getException().getMessage());
+                }
+                tripRef = task.getResult();
+                if (listenerRegistration == null)
+                    listenerRegistration = tripRef.addSnapshotListener(TripDetailFragment.this);
+            });
+            return;
+        }
+
+        if (args.containsKey(Constants.EXTRA_TRIP_ID)) {
             // Click on a trip to see details
-            String tripId = args.getString(Constants.EXTRA_TRIP_ID);
-            tripRef = Data.getTrip(tripId);
-            if (args.containsKey(Constants.EXTRA_EDIT)) {
-                // Click on a trip for edit
-                // Make a copy and work on it, in case user doesn't confirm
-                isEditMode = true;
-                tripRef = Data.getTrip(tripId);
-            }
+            currStatus = DetailFragmentMode.VIEW;
+            tripRef = Data.getTrip(args.getString(Constants.EXTRA_TRIP_ID));
         }
     }
 
@@ -64,23 +76,36 @@ public class TripDetailFragment extends MySuperFragment implements EventListener
                              Bundle savedInstanceState) {
         View parent = super.onCreateView(inflater, container, savedInstanceState);
         // Inflate the layout for this fragment
-        View root = isNewMode || isEditMode ?
-                inflater.inflate(R.layout.fragment_trip_edit, container, false) :
-                inflater.inflate(R.layout.fragment_trip_detail, container, false);
+        View root = null;
+        switch (currStatus) {
+            case EDIT:
+            case NEW:
+                root = inflater.inflate(R.layout.fragment_trip_edit, container, false);
+                break;
+            case VIEW:
+                root = inflater.inflate(R.layout.fragment_trip_detail, container, false);
+                break;
+        }
         if (parent instanceof ViewGroup) {
             ViewGroup viewGroup = (ViewGroup) parent;
             viewGroup.addView(root);
             return viewGroup;
         }
-
         return root;
     }
 
     @Override
     public void onStart() {
         super.onStart();
-        if (!isNewMode)
-            listenerRegistration = tripRef.addSnapshotListener(this);
+        switch (currStatus) {
+            case VIEW:
+            case EDIT:
+                if (listenerRegistration == null && tripRef != null)
+                    listenerRegistration = tripRef.addSnapshotListener(this);
+                break;
+            case NEW:
+                break;
+        }
     }
 
     @Override
@@ -95,11 +120,15 @@ public class TripDetailFragment extends MySuperFragment implements EventListener
     @Override
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
         super.onCreateOptionsMenu(menu, inflater);
-        // Also add the possibility to add an existing person
-        if (isNewMode || isEditMode)
-            inflater.inflate(R.menu.trip_detail_edit, menu);
-        else
-            inflater.inflate(R.menu.trip_detail, menu);
+        switch (currStatus) {
+            case EDIT:
+            case NEW:
+                inflater.inflate(R.menu.trip_detail_edit, menu);
+                break;
+            case VIEW:
+                inflater.inflate(R.menu.trip_detail, menu);
+                break;
+        }
     }
 
     @Override
@@ -154,7 +183,6 @@ public class TripDetailFragment extends MySuperFragment implements EventListener
         // TODO validation
         View root = getView();
         if (root != null) {
-            // TODO this doesn't update the server, so actually in the commit you confirm the trip on the server (so nothing changes)
             trip.setTitle(((EditText) root.findViewById(R.id.trip_title)).getText().toString());
             trip.setSubtitle(((EditText) root.findViewById(R.id.trip_subtitle)).getText().toString());
         }
@@ -191,11 +219,15 @@ public class TripDetailFragment extends MySuperFragment implements EventListener
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-        if (isNewMode) {
-            String newId = FirebaseFirestore.getInstance().collection(Constants.TRIPS_COLLECTION).document().getId();
-            trip = new Trip(newId, null, null);
-        } else {
-            setRefreshing(true);
+        switch (currStatus) {
+            case NEW:
+                String newId = FirebaseFirestore.getInstance().collection(Constants.TRIPS_COLLECTION).document().getId();
+                trip = new Trip(newId, null, null);
+                break;
+            case EDIT:
+            case VIEW:
+                setRefreshing(true);
+                break;
         }
     }
 
@@ -205,9 +237,14 @@ public class TripDetailFragment extends MySuperFragment implements EventListener
         trip_title.setText(trip.getTitle());
         EditText trip_subtitle = view.findViewById(R.id.trip_subtitle);
         trip_subtitle.setText(trip.getSubtitle());
-        // TODO insert the list fragment
-//        RecyclerView people_joined = view.findViewById(R.id.list_people);
-//        PeopleListFragment.fillListView(this, people_joined, trip, null, false);
+        Bundle b = new Bundle();
+        b.putString(Constants.EXTRA_TRIP_ID, trip.getId());
+        b.putBoolean(Constants.EXTRA_EDIT, true);
+        FragmentManager childFragmentManager = getChildFragmentManager();
+        childFragmentManager.beginTransaction().replace(
+                R.id.fragment_people_list,
+                Fragment.instantiate(getContext(), PeopleListFragment.class.getName(), b)
+        ).commit();
     }
 
     private void loadLayoutTrip(@Nullable View view) {
@@ -216,9 +253,13 @@ public class TripDetailFragment extends MySuperFragment implements EventListener
         trip_title.setText(trip.getTitle());
         TextView trip_subtitle = view.findViewById(R.id.trip_subtitle);
         trip_subtitle.setText(trip.getSubtitle());
-        // TODO insert the list fragment
-//        RecyclerView people_joined = view.findViewById(R.id.list_people);
-//        PeopleListFragment.fillListView(this, people_joined, trip, null, true);
+        Bundle b = new Bundle();
+        b.putString(Constants.EXTRA_TRIP_ID, trip.getId());
+        FragmentManager childFragmentManager = getChildFragmentManager();
+        childFragmentManager.beginTransaction().replace(
+                R.id.fragment_people_list,
+                Fragment.instantiate(getContext(), PeopleListFragment.class.getName(), b)
+        ).commit();
     }
 
     @Override
@@ -228,9 +269,8 @@ public class TripDetailFragment extends MySuperFragment implements EventListener
     }
 
     private void cleanData() {
-        if (trip.isDraft()) {
+        if (trip.isDraft())
             Data.deleteTripBatch(trip.getId(), null, this);
-        }
     }
 
     @Override
@@ -240,20 +280,24 @@ public class TripDetailFragment extends MySuperFragment implements EventListener
             return;
         }
 
-        if (!documentSnapshot.exists())
+        if (!documentSnapshot.exists()) {
+            setRefreshing(false);
+            getMySuperActivity().showToast("Snapshot doesn't exist yet");
             return;
+        }
         trip = documentSnapshot.toObject(Trip.class);
-        String newId = FirebaseFirestore.getInstance().collection(Constants.TRIPS_COLLECTION).document().getId();
-
-        if (isNewMode) {
-            trip.setId(newId);
-        } else if (isEditMode) {
-            // Work on a copy, in case user doesn't confirm
-            trip = Data.createDraftTripBatch(trip, null, task -> {
-            });
-            loadEditLayoutTrip(getView());
-        } else {
-            loadLayoutTrip(getView());
+        switch (currStatus) {
+            case EDIT:
+                if (!trip.isDraft())
+                    getMySuperActivity().showToast("This should be a draft");
+                loadEditLayoutTrip(getView());
+                break;
+            case NEW:
+                getMySuperActivity().showToast("We shouldn't be here");
+                break;
+            case VIEW:
+                loadLayoutTrip(getView());
+                break;
         }
         setRefreshing(false);
     }

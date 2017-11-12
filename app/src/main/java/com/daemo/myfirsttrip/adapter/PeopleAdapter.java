@@ -80,40 +80,43 @@ public class PeopleAdapter extends FirestoreAdapter<PeopleAdapter.ViewHolder> im
         private void setPerson(MySuperFragment fragment, Person person) {
             this.mPersonTitle.setText(person.getName());
             this.mPersonSubtitle.setText(person.getSurname());
-            Bundle b = new Bundle();
-            Bundle bb = new Bundle();
-            bb.putString(Constants.EXTRA_PERSON_ID, person.getId());
-            b.putBundle(Constants.EXTRA_BUNDLE_FOR_FRAGMENT, bb);
-            b.putBoolean(Constants.EXTRA_ADD_TO_BACKSTACK, true);
-            b.putString(Constants.EXTRA_REPLACE_FRAGMENT, PersonDetailFragment.class.getName());
-            mPersonCard.setOnClickListener(
-                    view -> {
-                        if (isChooseMode) {
-                            int position = getAdapterPosition();
-                            // Below line is just like a safety check, because sometimes holder could be null,
-                            // in that case, getAdapterPosition() will return RecyclerView.NO_POSITION
-                            if (position == RecyclerView.NO_POSITION) return;
+            if (isClickable) {
+                Bundle b = new Bundle();
+                Bundle bb = new Bundle();
+                bb.putString(Constants.EXTRA_PERSON_ID, person.getId());
+                b.putBundle(Constants.EXTRA_BUNDLE_FOR_FRAGMENT, bb);
+                b.putBoolean(Constants.EXTRA_ADD_TO_BACKSTACK, true);
+                b.putString(Constants.EXTRA_REPLACE_FRAGMENT, PersonDetailFragment.class.getName());
+                mPersonCard.setOnClickListener(
+                        view -> {
+                            if (isChooseMode) {
+                                int position = getAdapterPosition();
+                                // Below line is just like a safety check, because sometimes holder could be null,
+                                // in that case, getAdapterPosition() will return RecyclerView.NO_POSITION
+                                if (position == RecyclerView.NO_POSITION) return;
 
-                            // Updating old as well as new positions
-                            for (Integer selected_position : selected_positions)
-                                notifyItemChanged(selected_position);
+                                // Updating old as well as new positions
+                                for (Integer selected_position : selected_positions)
+                                    notifyItemChanged(selected_position);
 
-                            if (selected_positions.contains(position))
-                                selected_positions.remove(position);
-                            else
-                                selected_positions.add(position);
+                                if (selected_positions.contains(position))
+                                    selected_positions.remove(position);
+                                else
+                                    selected_positions.add(position);
 
-                            if (selected_ids.contains(person.getId()))
-                                selected_ids.remove(person.getId());
-                            else
-                                selected_ids.add(person.getId());
+                                if (selected_ids.contains(person.getId())) {
+                                    unselected_ids.add(person.getId());
+                                    selected_ids.remove(person.getId());
+                                } else
+                                    selected_ids.add(person.getId());
 
-                            for (Integer selected_position : selected_positions)
-                                notifyItemChanged(selected_position);
+                                for (Integer selected_position : selected_positions)
+                                    notifyItemChanged(selected_position);
 
-                        } else
-                            fragment.mListener.onFragmentInteraction(b);
-                    });
+                            } else
+                                fragment.mListener.onFragmentInteraction(b);
+                        });
+            }
         }
     }
 }

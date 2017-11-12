@@ -11,7 +11,7 @@ public class Person {
     public String id;
     public String name;
     public String surname;
-    public Map<String, Integer> trips_ids = new HashMap<>();
+    public Map<String, Integer> tripsIds = new HashMap<>();
     private String oldId;
     private boolean isDraft = false;
 
@@ -56,12 +56,12 @@ public class Person {
         isDraft = draft;
     }
 
-    public Map<String, Integer> getTrips_ids() {
-        return trips_ids;
+    public Map<String, Integer> getTripsIds() {
+        return tripsIds;
     }
 
-    public void setTrips_ids(Map<String, Integer> trips_ids) {
-        this.trips_ids = trips_ids;
+    public void setTripsIds(Map<String, Integer> tripsIds) {
+        this.tripsIds = tripsIds;
     }
 
     public String getOldId() {

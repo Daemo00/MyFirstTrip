@@ -81,7 +81,7 @@ public class MySuperActivity extends AppCompatActivity
 //            DocumentReference curPerson = mFirestore.collection("people")
 //                    .document(String.valueOf(person.id));
 //            for (Trip trip : Data.getTrips(person))
-//                person.trips_ids.put(String.valueOf(trip.id), 1);
+//                person.tripsIds.put(String.valueOf(trip.id), 1);
 //
 //            curPerson.set(person);
 //        }

@@ -80,40 +80,43 @@ public class TripsAdapter extends FirestoreAdapter<TripsAdapter.ViewHolder> impl
         private void setTrip(MySuperFragment fragment, Trip trip) {
             this.mTripTitle.setText(trip.getTitle());
             this.mTripSubtitle.setText(trip.getSubtitle());
-            Bundle b = new Bundle();
-            Bundle bb = new Bundle();
-            bb.putString(Constants.EXTRA_TRIP_ID, trip.getId());
-            b.putBundle(Constants.EXTRA_BUNDLE_FOR_FRAGMENT, bb);
-            b.putBoolean(Constants.EXTRA_ADD_TO_BACKSTACK, true);
-            b.putString(Constants.EXTRA_REPLACE_FRAGMENT, TripDetailFragment.class.getName());
-            mTripCard.setOnClickListener(
-                    view -> {
-                        if (isChooseMode) {
-                            int position = getAdapterPosition();
-                            // Below line is just like a safety check, because sometimes holder could be null,
-                            // in that case, getAdapterPosition() will return RecyclerView.NO_POSITION
-                            if (position == RecyclerView.NO_POSITION) return;
+            if (isClickable) {
+                Bundle b = new Bundle();
+                Bundle bb = new Bundle();
+                bb.putString(Constants.EXTRA_TRIP_ID, trip.getId());
+                b.putBundle(Constants.EXTRA_BUNDLE_FOR_FRAGMENT, bb);
+                b.putBoolean(Constants.EXTRA_ADD_TO_BACKSTACK, true);
+                b.putString(Constants.EXTRA_REPLACE_FRAGMENT, TripDetailFragment.class.getName());
+                mTripCard.setOnClickListener(
+                        view -> {
+                            if (isChooseMode) {
+                                int position = getAdapterPosition();
+                                // Below line is just like a safety check, because sometimes holder could be null,
+                                // in that case, getAdapterPosition() will return RecyclerView.NO_POSITION
+                                if (position == RecyclerView.NO_POSITION) return;
 
-                            // Updating old as well as new positions
-                            for (Integer selected_position : selected_positions)
-                                notifyItemChanged(selected_position);
+                                // Updating old as well as new positions
+                                for (Integer selected_position : selected_positions)
+                                    notifyItemChanged(selected_position);
 
-                            if (selected_positions.contains(position))
-                                selected_positions.remove(position);
-                            else
-                                selected_positions.add(position);
+                                if (selected_positions.contains(position))
+                                    selected_positions.remove(position);
+                                else
+                                    selected_positions.add(position);
 
-                            if (selected_ids.contains(trip.getId()))
-                                selected_ids.remove(trip.getId());
-                            else
-                                selected_ids.add(trip.getId());
+                                if (selected_ids.contains(trip.getId())) {
+                                    unselected_ids.add(trip.getId());
+                                    selected_ids.remove(trip.getId());
+                                } else
+                                    selected_ids.add(trip.getId());
 
-                            for (Integer selected_position : selected_positions)
-                                notifyItemChanged(selected_position);
+                                for (Integer selected_position : selected_positions)
+                                    notifyItemChanged(selected_position);
 
-                        } else
-                            fragment.mListener.onFragmentInteraction(b);
-                    });
+                            } else
+                                fragment.mListener.onFragmentInteraction(b);
+                        });
+            }
         }
     }
 }
