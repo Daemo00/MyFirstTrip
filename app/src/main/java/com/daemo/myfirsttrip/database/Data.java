@@ -7,6 +7,7 @@ import com.daemo.myfirsttrip.common.Constants;
 import com.daemo.myfirsttrip.models.Person;
 import com.daemo.myfirsttrip.models.Trip;
 import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.Tasks;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FieldValue;
@@ -23,7 +24,7 @@ import java.util.Set;
 public class Data {
 
     @NonNull
-    public static DocumentReference getTrip(String id) {
+    public static DocumentReference getTripRef(@Nullable String id) {
         if (id == null || id.isEmpty())
             return FirebaseFirestore.getInstance()
                     .collection(Constants.TRIPS_COLLECTION)
@@ -35,7 +36,7 @@ public class Data {
     }
 
     @NonNull
-    public static DocumentReference getPerson(String id) {
+    public static DocumentReference getPersonRef(@Nullable String id) {
         if (id == null || id.isEmpty())
             return FirebaseFirestore.getInstance()
                     .collection(Constants.PEOPLE_COLLECTION)
@@ -221,8 +222,17 @@ public class Data {
         return tripDocReference;
     }
 
-    public static DocumentReference createDraftPersonFromRef(DocumentReference personDocReference, OnCompleteListener<DocumentReference> onCompleteListener) {
+    public static void createDraftPersonFromRef(DocumentReference personDocReference, OnCompleteListener<DocumentReference> onCompleteListener) {
         DocumentReference draftPersonDocReference = FirebaseFirestore.getInstance().collection(Constants.PEOPLE_COLLECTION).document();
+        if (personDocReference == null) {
+            WriteBatch batch = FirebaseFirestore.getInstance().batch();
+            Trip trip = new Trip(draftPersonDocReference.getId(), null, null);
+            trip.setDraft(true);
+            batch.set(draftPersonDocReference, trip);
+            batch.commit().addOnCompleteListener(task ->
+                    Tasks.forResult(draftPersonDocReference).addOnCompleteListener(onCompleteListener));
+            return;
+        }
         FirebaseFirestore.getInstance().runTransaction(transaction -> {
             DocumentSnapshot documentSnapshot = transaction.get(personDocReference);
             transaction.update(personDocReference, "surname", "has a draft");
@@ -249,11 +259,19 @@ public class Data {
 
             return draftPersonDocReference;
         }).addOnCompleteListener(onCompleteListener);
-        return draftPersonDocReference;
     }
 
-    public static DocumentReference createDraftTripFromRef(DocumentReference tripDocReference, OnCompleteListener<DocumentReference> onCompleteListener) {
+    public static void createDraftTripFromRef(@Nullable DocumentReference tripDocReference, OnCompleteListener<DocumentReference> onCompleteListener) {
         DocumentReference draftTripDocReference = FirebaseFirestore.getInstance().collection(Constants.TRIPS_COLLECTION).document();
+        if (tripDocReference == null) {
+            WriteBatch batch = FirebaseFirestore.getInstance().batch();
+            Trip trip = new Trip(draftTripDocReference.getId(), null, null);
+            trip.setDraft(true);
+            batch.set(draftTripDocReference, trip);
+            batch.commit().addOnCompleteListener(task ->
+                    Tasks.forResult(draftTripDocReference).addOnCompleteListener(onCompleteListener));
+            return;
+        }
         FirebaseFirestore.getInstance().runTransaction(transaction -> {
             DocumentSnapshot documentSnapshot = transaction.get(tripDocReference);
             transaction.update(tripDocReference, "subtitle", "has a draft");
@@ -280,7 +298,5 @@ public class Data {
 
             return draftTripDocReference;
         }).addOnCompleteListener(onCompleteListener);
-        return draftTripDocReference;
     }
-
 }

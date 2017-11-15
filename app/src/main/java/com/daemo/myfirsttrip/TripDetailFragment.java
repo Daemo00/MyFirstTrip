@@ -23,7 +23,6 @@ import com.google.android.gms.tasks.Task;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.EventListener;
-import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.FirebaseFirestoreException;
 import com.google.firebase.firestore.ListenerRegistration;
 
@@ -46,6 +45,15 @@ public class TripDetailFragment extends MySuperFragment implements EventListener
         if (args == null || args.isEmpty()) {
             // From tripsIds list, add a trip
             currStatus = DetailFragmentMode.NEW;
+            Data.createDraftTripFromRef(null, task -> {
+                if (task.getException() != null) {
+                    getMySuperActivity().showToast(task.getException().getMessage());
+                    return;
+                }
+                tripRef = task.getResult();
+                if (listenerRegistration == null)
+                    listenerRegistration = tripRef.addSnapshotListener(TripDetailFragment.this);
+            });
             return;
         }
 
@@ -53,9 +61,10 @@ public class TripDetailFragment extends MySuperFragment implements EventListener
                 args.containsKey(Constants.EXTRA_EDIT) && args.getBoolean(Constants.EXTRA_EDIT)) {
             // Click on a trip for edit
             currStatus = DetailFragmentMode.EDIT;
-            Data.createDraftTripFromRef(Data.getTrip(args.getString(Constants.EXTRA_TRIP_ID)), task -> {
+            Data.createDraftTripFromRef(Data.getTripRef(args.getString(Constants.EXTRA_TRIP_ID)), task -> {
                 if (task.getException() != null) {
                     getMySuperActivity().showToast(task.getException().getMessage());
+                    return;
                 }
                 tripRef = task.getResult();
                 if (listenerRegistration == null)
@@ -67,7 +76,7 @@ public class TripDetailFragment extends MySuperFragment implements EventListener
         if (args.containsKey(Constants.EXTRA_TRIP_ID)) {
             // Click on a trip to see details
             currStatus = DetailFragmentMode.VIEW;
-            tripRef = Data.getTrip(args.getString(Constants.EXTRA_TRIP_ID));
+            tripRef = Data.getTripRef(args.getString(Constants.EXTRA_TRIP_ID));
         }
     }
 
@@ -98,12 +107,11 @@ public class TripDetailFragment extends MySuperFragment implements EventListener
     public void onStart() {
         super.onStart();
         switch (currStatus) {
+            case NEW:
             case VIEW:
             case EDIT:
                 if (listenerRegistration == null && tripRef != null)
                     listenerRegistration = tripRef.addSnapshotListener(this);
-                break;
-            case NEW:
                 break;
         }
     }
@@ -170,7 +178,7 @@ public class TripDetailFragment extends MySuperFragment implements EventListener
 
     @Override
     public boolean allowBackPress() {
-        if (trip.isDraft()) {
+        if (trip != null && trip.isDraft()) {
             getMySuperActivity().showOkCancelDialog("Confirm",
                     "Confirm the current modifications?",
                     (dialogInterface, i) -> confirmTrip());
@@ -221,9 +229,6 @@ public class TripDetailFragment extends MySuperFragment implements EventListener
         super.onViewCreated(view, savedInstanceState);
         switch (currStatus) {
             case NEW:
-                String newId = FirebaseFirestore.getInstance().collection(Constants.TRIPS_COLLECTION).document().getId();
-                trip = new Trip(newId, null, null);
-                break;
             case EDIT:
             case VIEW:
                 setRefreshing(true);
@@ -269,7 +274,7 @@ public class TripDetailFragment extends MySuperFragment implements EventListener
     }
 
     private void cleanData() {
-        if (trip.isDraft())
+        if (trip != null && trip.isDraft())
             Data.deleteTripBatch(trip.getId(), null, this);
     }
 
@@ -288,12 +293,10 @@ public class TripDetailFragment extends MySuperFragment implements EventListener
         trip = documentSnapshot.toObject(Trip.class);
         switch (currStatus) {
             case EDIT:
+            case NEW:
                 if (!trip.isDraft())
                     getMySuperActivity().showToast("This should be a draft");
                 loadEditLayoutTrip(getView());
-                break;
-            case NEW:
-                getMySuperActivity().showToast("We shouldn't be here");
                 break;
             case VIEW:
                 loadLayoutTrip(getView());

@@ -56,7 +56,7 @@ public class PeopleListFragment extends MySuperFragment implements EventListener
         if (args == null || args.isEmpty()) {
             currStatus = ListFragmentMode.ALL;
         } else if (args.containsKey(Constants.EXTRA_TRIP_ID)) {
-            tripDocReference = Data.getTrip(args.getString(Constants.EXTRA_TRIP_ID));
+            tripDocReference = Data.getTripRef(args.getString(Constants.EXTRA_TRIP_ID));
             currStatus = ListFragmentMode.NESTED;
             if (args.containsKey(Constants.EXTRA_CHOOSE) && args.getBoolean(Constants.EXTRA_CHOOSE))
                 currStatus = ListFragmentMode.CHOOSE;
@@ -225,25 +225,6 @@ public class PeopleListFragment extends MySuperFragment implements EventListener
             setRefreshing(false);
         });
         return true;
-    }
-
-    @Override
-    public boolean allowBackPress() {
-        switch (currStatus) {
-            case CHOOSE:
-            case NESTED:
-            case NESTED_EDIT:
-//                if (orig_trip != null && orig_trip.isDraft()) {
-//                    getMySuperActivity().showOkCancelDialog("Confirm",
-//                            "Confirm the current modifications?",
-//                            (dialogInterface, i) -> confirmSelection());
-//                    return false;
-//                }
-                break;
-            case ALL:
-                break;
-        }
-        return super.allowBackPress();
     }
 
     @Override
