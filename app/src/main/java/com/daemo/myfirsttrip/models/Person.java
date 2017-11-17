@@ -18,10 +18,10 @@ public class Person {
     public Person() {
     }
 
-    public Person(String id, String name, String surname) {
+    public Person(String id) {
         this.id = id;
-        this.name = name;
-        this.surname = surname;
+        this.name = null;
+        this.surname = null;
     }
 
     public String getId() {

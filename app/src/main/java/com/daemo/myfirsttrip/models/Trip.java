@@ -19,10 +19,10 @@ public class Trip {
 
     }
 
-    public Trip(String id, String title, String subtitle) {
+    public Trip(String id) {
         this.id = id;
-        this.title = title;
-        this.subtitle = subtitle;
+        this.title = null;
+        this.subtitle = null;
         peopleIds = new HashMap<>();
     }
 

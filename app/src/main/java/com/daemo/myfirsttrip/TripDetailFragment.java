@@ -149,7 +149,8 @@ public class TripDetailFragment extends MySuperFragment implements EventListener
                     fragmentManager.popBackStack();
                 break;
             case R.id.confirm_trip:
-                return confirmTrip();
+                confirmTrip();
+                return true;
             case R.id.edit_trip:
                 if (trip.isDraft())
                     getMySuperActivity().showOkCancelDialog("Confirm",
@@ -187,7 +188,7 @@ public class TripDetailFragment extends MySuperFragment implements EventListener
         return super.allowBackPress();
     }
 
-    private boolean confirmTrip() {
+    private void confirmTrip() {
         // TODO validation
         View root = getView();
         if (root != null) {
@@ -195,7 +196,7 @@ public class TripDetailFragment extends MySuperFragment implements EventListener
             trip.setSubtitle(((EditText) root.findViewById(R.id.trip_subtitle)).getText().toString());
         }
         setRefreshing(true);
-        Data.commitTripBatch(trip, null, task -> setRefreshing(false));
+        Data.commitTripBatch(trip, task -> setRefreshing(false));
         // needed, otherwise this fragment isn't correctly removed
         FragmentManager fragmentManager = getFragmentManager();
         if (fragmentManager != null) {
@@ -210,7 +211,6 @@ public class TripDetailFragment extends MySuperFragment implements EventListener
         b.putBoolean(Constants.EXTRA_ADD_TO_BACKSTACK, true);
         b.putString(Constants.EXTRA_REPLACE_FRAGMENT, TripDetailFragment.class.getName());
         mListener.onFragmentInteraction(b);
-        return true;
     }
 
     private void editTrip() {
@@ -275,7 +275,7 @@ public class TripDetailFragment extends MySuperFragment implements EventListener
 
     private void cleanData() {
         if (trip != null && trip.isDraft())
-            Data.deleteTripBatch(trip.getId(), null, this);
+            Data.deleteTripBatch(trip.getId(), this);
     }
 
     @Override

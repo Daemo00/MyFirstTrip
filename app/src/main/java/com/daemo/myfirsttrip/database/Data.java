@@ -47,9 +47,8 @@ public class Data {
                     .document(id);
     }
 
-    public static void commitPersonBatch(@NonNull Person person, @Nullable WriteBatch batch, OnCompleteListener<Void> onCompleteListener) {
-        if (batch == null)
-            batch = FirebaseFirestore.getInstance().batch();
+    public static void commitPersonBatch(@NonNull Person person, OnCompleteListener<Void> onCompleteListener) {
+        WriteBatch batch = FirebaseFirestore.getInstance().batch();
         // Remove the draft flag
         DocumentReference personDocReference = FirebaseFirestore.getInstance().collection(Constants.PEOPLE_COLLECTION)
                 .document(person.getId());
@@ -68,9 +67,8 @@ public class Data {
             batch.commit().addOnCompleteListener(onCompleteListener);
     }
 
-    public static void commitTripBatch(@NonNull Trip trip, @Nullable WriteBatch batch, OnCompleteListener<Void> onCompleteListener) {
-        if (batch == null)
-            batch = FirebaseFirestore.getInstance().batch();
+    public static void commitTripBatch(@NonNull Trip trip, OnCompleteListener<Void> onCompleteListener) {
+        WriteBatch batch = FirebaseFirestore.getInstance().batch();
         // Remove the draft flag
         DocumentReference tripDocReference = FirebaseFirestore.getInstance().collection(Constants.TRIPS_COLLECTION)
                 .document(trip.getId());
@@ -89,8 +87,8 @@ public class Data {
             batch.commit().addOnCompleteListener(onCompleteListener);
     }
 
-    public static void deletePersonBatch(String id, WriteBatch batch, OnCompleteListener<Void> onCompleteListener) {
-        deletePersonBatch(FirebaseFirestore.getInstance().collection(Constants.PEOPLE_COLLECTION).document(id), batch, onCompleteListener);
+    public static void deletePersonBatch(String id, OnCompleteListener<Void> onCompleteListener) {
+        deletePersonBatch(FirebaseFirestore.getInstance().collection(Constants.PEOPLE_COLLECTION).document(id), null, onCompleteListener);
     }
 
     public static void deletePersonBatch(DocumentReference personDocReference, WriteBatch batch, OnCompleteListener<Void> onCompleteListener) {
@@ -123,8 +121,8 @@ public class Data {
         batch.commit().addOnCompleteListener(onCompleteListener);
     }
 
-    public static void deleteTripBatch(String id, WriteBatch batch, OnCompleteListener<Void> onCompleteListener) {
-        deleteTripBatch(FirebaseFirestore.getInstance().collection(Constants.TRIPS_COLLECTION).document(id), batch, onCompleteListener);
+    public static void deleteTripBatch(String id, OnCompleteListener<Void> onCompleteListener) {
+        deleteTripBatch(FirebaseFirestore.getInstance().collection(Constants.TRIPS_COLLECTION).document(id), null, onCompleteListener);
     }
 
     private static void deleteTripBatch(DocumentReference tripDocReference, WriteBatch batch, OnCompleteListener<Void> onCompleteListener) {
@@ -157,9 +155,8 @@ public class Data {
         batch.commit().addOnCompleteListener(onCompleteListener);
     }
 
-    public static DocumentReference updatePersonBatch(Person person, Set<String> unselected_ids, WriteBatch batch, OnCompleteListener<Void> onCompleteListener) {
-        if (batch == null)
-            batch = FirebaseFirestore.getInstance().batch();
+    public static void updatePersonBatch(Person person, Set<String> unselected_ids, OnCompleteListener<Void> onCompleteListener) {
+        WriteBatch batch = FirebaseFirestore.getInstance().batch();
         DocumentReference personDocReference = FirebaseFirestore.getInstance().collection(Constants.PEOPLE_COLLECTION).document(person.id);
         batch.set(personDocReference, person);
 
@@ -184,12 +181,10 @@ public class Data {
             batch.update(tripDocReference, updates);
 
         batch.commit().addOnCompleteListener(onCompleteListener);
-        return personDocReference;
     }
 
-    public static DocumentReference updateTripBatch(Trip trip, Set<String> unselected_ids, WriteBatch batch, OnCompleteListener<Void> onCompleteListener) {
-        if (batch == null)
-            batch = FirebaseFirestore.getInstance().batch();
+    public static void updateTripBatch(Trip trip, Set<String> unselected_ids, OnCompleteListener<Void> onCompleteListener) {
+        WriteBatch batch = FirebaseFirestore.getInstance().batch();
         DocumentReference tripDocReference = FirebaseFirestore.getInstance()
                 .collection(Constants.TRIPS_COLLECTION).document(trip.getId());
         batch.set(tripDocReference, trip);
@@ -219,23 +214,22 @@ public class Data {
             batch.update(personDocReference, updates);
 
         batch.commit().addOnCompleteListener(onCompleteListener);
-        return tripDocReference;
     }
 
     public static void createDraftPersonFromRef(DocumentReference personDocReference, OnCompleteListener<DocumentReference> onCompleteListener) {
         DocumentReference draftPersonDocReference = FirebaseFirestore.getInstance().collection(Constants.PEOPLE_COLLECTION).document();
         if (personDocReference == null) {
             WriteBatch batch = FirebaseFirestore.getInstance().batch();
-            Trip trip = new Trip(draftPersonDocReference.getId(), null, null);
-            trip.setDraft(true);
-            batch.set(draftPersonDocReference, trip);
+            Person person = new Person(draftPersonDocReference.getId());
+            person.setDraft(true);
+            batch.set(draftPersonDocReference, person);
             batch.commit().addOnCompleteListener(task ->
                     Tasks.forResult(draftPersonDocReference).addOnCompleteListener(onCompleteListener));
             return;
         }
         FirebaseFirestore.getInstance().runTransaction(transaction -> {
             DocumentSnapshot documentSnapshot = transaction.get(personDocReference);
-            transaction.update(personDocReference, "surname", "has a draft");
+            transaction.update(personDocReference, "newId", draftPersonDocReference.getId());
             Person person = documentSnapshot.toObject(Person.class);
             person.setDraft(true);
             person.setOldId(person.getId());
@@ -265,7 +259,7 @@ public class Data {
         DocumentReference draftTripDocReference = FirebaseFirestore.getInstance().collection(Constants.TRIPS_COLLECTION).document();
         if (tripDocReference == null) {
             WriteBatch batch = FirebaseFirestore.getInstance().batch();
-            Trip trip = new Trip(draftTripDocReference.getId(), null, null);
+            Trip trip = new Trip(draftTripDocReference.getId());
             trip.setDraft(true);
             batch.set(draftTripDocReference, trip);
             batch.commit().addOnCompleteListener(task ->
@@ -274,7 +268,7 @@ public class Data {
         }
         FirebaseFirestore.getInstance().runTransaction(transaction -> {
             DocumentSnapshot documentSnapshot = transaction.get(tripDocReference);
-            transaction.update(tripDocReference, "subtitle", "has a draft");
+            transaction.update(tripDocReference, "newId", draftTripDocReference.getId());
             Trip trip = documentSnapshot.toObject(Trip.class);
             trip.setDraft(true);
             trip.setOldId(trip.getId());

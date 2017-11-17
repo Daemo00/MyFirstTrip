@@ -149,7 +149,8 @@ public class PersonDetailFragment extends MySuperFragment implements EventListen
                     fragmentManager.popBackStack();
                 break;
             case R.id.confirm_person:
-                return confirmPerson();
+                confirmPerson();
+                return true;
             case R.id.edit_person:
                 if (person.isDraft())
                     getMySuperActivity().showOkCancelDialog("Confirm",
@@ -187,7 +188,7 @@ public class PersonDetailFragment extends MySuperFragment implements EventListen
         return super.allowBackPress();
     }
 
-    private boolean confirmPerson() {
+    private void confirmPerson() {
         //TODO validation
         View root = getView();
         if (root != null) {
@@ -195,7 +196,7 @@ public class PersonDetailFragment extends MySuperFragment implements EventListen
             person.setSurname(((EditText) root.findViewById(R.id.person_surname)).getText().toString());
         }
         setRefreshing(true);
-        Data.commitPersonBatch(person, null, task -> setRefreshing(false));
+        Data.commitPersonBatch(person, task -> setRefreshing(false));
         // needed, otherwise this fragment isn't correctly removed
         FragmentManager fragmentManager = getFragmentManager();
         if (fragmentManager != null) {
@@ -210,7 +211,6 @@ public class PersonDetailFragment extends MySuperFragment implements EventListen
         b.putBoolean(Constants.EXTRA_ADD_TO_BACKSTACK, true);
         b.putString(Constants.EXTRA_REPLACE_FRAGMENT, PersonDetailFragment.class.getName());
         mListener.onFragmentInteraction(b);
-        return true;
     }
 
     private void editPerson() {
@@ -243,7 +243,7 @@ public class PersonDetailFragment extends MySuperFragment implements EventListen
         EditText person_surname = view.findViewById(R.id.person_surname);
         person_surname.setText(person.surname);
         Bundle b = new Bundle();
-        b.putString(Constants.EXTRA_TRIP_ID, person.getId());
+        b.putString(Constants.EXTRA_PERSON_ID, person.getId());
         b.putBoolean(Constants.EXTRA_EDIT, true);
         FragmentManager childFragmentManager = getChildFragmentManager();
         childFragmentManager.beginTransaction().replace(
@@ -275,7 +275,7 @@ public class PersonDetailFragment extends MySuperFragment implements EventListen
 
     private void cleanData() {
         if (person != null && person.isDraft())
-            Data.deletePersonBatch(person.getId(), null, this);
+            Data.deletePersonBatch(person.getId(), this);
     }
 
     @Override

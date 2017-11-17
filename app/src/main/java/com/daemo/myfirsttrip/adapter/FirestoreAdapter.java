@@ -32,11 +32,11 @@ public abstract class FirestoreAdapter<VH extends RecyclerView.ViewHolder>
         extends RecyclerView.Adapter<VH>
         implements EventListener<QuerySnapshot>, ItemTouchHelperAdapter {
     private static final String TAG = Utils.getTag(FirestoreAdapter.class);
+    public final Set<String> unselected_ids = new HashSet<>();
     final MySuperFragment fragment;
     final Set<Integer> selected_positions = new HashSet<>();
     private final ArrayList<DocumentSnapshot> mSnapshots = new ArrayList<>();
-    public Set<String> selected_ids = new HashSet<String>();
-    public Set<String> unselected_ids = new HashSet<String>();
+    public Set<String> selected_ids = new HashSet<>();
     public Query mQuery;
     boolean isChooseMode;
     boolean isClickable;

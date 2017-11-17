@@ -130,7 +130,7 @@ public class TripsListFragment extends MySuperFragment implements EventListener<
 
     private void fillListView() {
         FirebaseFirestore mFirestore = getMySuperActivity().mFirestore;
-        Query query = null;
+        Query query;
         Set<String> selected_ids = new HashSet<>();
         mRecyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
         mRecyclerView.setHasFixedSize(true);
@@ -197,12 +197,13 @@ public class TripsListFragment extends MySuperFragment implements EventListener<
                 mListener.onFragmentInteraction(b);
                 return true;
             case R.id.confirm_selection:
-                return confirmSelection();
+                confirmSelection();
+                return true;
         }
         return super.onOptionsItemSelected(item);
     }
 
-    private boolean confirmSelection() {
+    private void confirmSelection() {
         // Update the orig_person with the selected trips
         if (!orig_person.isDraft())
             getMySuperActivity().showToast("Something went wrong, this should be a draft");
@@ -215,7 +216,7 @@ public class TripsListFragment extends MySuperFragment implements EventListener<
         orig_person.setTripsIds(selected_tripsIds);
 
         setRefreshing(true);
-        Data.updatePersonBatch(orig_person, mAdapter.unselected_ids, null, task -> {
+        Data.updatePersonBatch(orig_person, mAdapter.unselected_ids, task -> {
             FragmentManager fragmentManager = getFragmentManager();
             if (fragmentManager != null)
                 // Go back to whoever called this
@@ -224,7 +225,6 @@ public class TripsListFragment extends MySuperFragment implements EventListener<
                 getMySuperActivity().showToast("Fragment manager not found");
             setRefreshing(false);
         });
-        return true;
     }
 
     @Override
