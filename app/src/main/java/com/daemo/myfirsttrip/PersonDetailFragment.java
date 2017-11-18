@@ -32,6 +32,7 @@ public class PersonDetailFragment extends MySuperFragment implements EventListen
     private ListenerRegistration listenerRegistration;
     private Person person;
     private DetailFragmentMode currStatus;
+    private MySuperFragment tripsListFragment;
 
 
     public PersonDetailFragment() {
@@ -45,6 +46,7 @@ public class PersonDetailFragment extends MySuperFragment implements EventListen
         if (args == null || args.isEmpty()) {
             // From peopleIds list, add a person
             currStatus = DetailFragmentMode.NEW;
+            needsRefreshLayout = false;
             Data.createDraftPersonFromRef(null, task -> {
                 if (task.getException() != null) {
                     getMySuperActivity().showToast(task.getException().getMessage());
@@ -61,6 +63,7 @@ public class PersonDetailFragment extends MySuperFragment implements EventListen
                 args.containsKey(Constants.EXTRA_EDIT) && args.getBoolean(Constants.EXTRA_EDIT)) {
             // Click on a person for edit
             currStatus = DetailFragmentMode.EDIT;
+            needsRefreshLayout = true;
             Data.createDraftPersonFromRef(Data.getPersonRef(args.getString(Constants.EXTRA_PERSON_ID)), task -> {
                 if (task.getException() != null) {
                     getMySuperActivity().showToast(task.getException().getMessage());
@@ -76,6 +79,7 @@ public class PersonDetailFragment extends MySuperFragment implements EventListen
         if (args.containsKey(Constants.EXTRA_PERSON_ID)) {
             // Click on a person to see details
             currStatus = DetailFragmentMode.VIEW;
+            needsRefreshLayout = true;
             personRef = Data.getPersonRef(args.getString(Constants.EXTRA_PERSON_ID));
         }
     }
@@ -181,8 +185,10 @@ public class PersonDetailFragment extends MySuperFragment implements EventListen
     public boolean allowBackPress() {
         if (person != null && person.isDraft()) {
             getMySuperActivity().showOkCancelDialog("Confirm",
-                    "Confirm the current modifications?",
-                    (dialogInterface, i) -> confirmPerson());
+                    "Confirm the current modifications or cancel them",
+                    (dialogInterface, i) -> confirmPerson(),
+                    null,
+                    (dialogInterface, i) -> getFragmentManager().popBackStack());
             return false;
         }
         return super.allowBackPress();
@@ -246,9 +252,10 @@ public class PersonDetailFragment extends MySuperFragment implements EventListen
         b.putString(Constants.EXTRA_PERSON_ID, person.getId());
         b.putBoolean(Constants.EXTRA_EDIT, true);
         FragmentManager childFragmentManager = getChildFragmentManager();
+        tripsListFragment = (MySuperFragment) Fragment.instantiate(getContext(), TripsListFragment.class.getName(), b);
         childFragmentManager.beginTransaction().replace(
                 R.id.fragment_trips_list,
-                Fragment.instantiate(getContext(), TripsListFragment.class.getName(), b)
+                tripsListFragment
         ).commit();
     }
 
@@ -261,10 +268,16 @@ public class PersonDetailFragment extends MySuperFragment implements EventListen
         Bundle b = new Bundle();
         b.putString(Constants.EXTRA_PERSON_ID, person.getId());
         FragmentManager childFragmentManager = getChildFragmentManager();
+        tripsListFragment = (MySuperFragment) Fragment.instantiate(getContext(), TripsListFragment.class.getName(), b);
         childFragmentManager.beginTransaction().replace(
                 R.id.fragment_trips_list,
-                Fragment.instantiate(getContext(), TripsListFragment.class.getName(), b)
+                tripsListFragment
         ).commit();
+    }
+
+    @Override
+    public void onRefresh() {
+        tripsListFragment.mAdapter.setQuery(tripsListFragment.mAdapter.mQuery);
     }
 
     @Override

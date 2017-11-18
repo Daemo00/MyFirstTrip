@@ -51,8 +51,8 @@ public class TripsAdapter extends FirestoreAdapter<TripsAdapter.ViewHolder> impl
 
     @Override
     void deleteItem(DocumentSnapshot itemSnapshot) {
-        fragment.setRefreshing(true);
-        Data.deleteTripBatch(itemSnapshot, null, task -> fragment.setRefreshing(false));
+        myRefreshing.setRefreshing(true);
+        Data.deleteTripBatch(itemSnapshot, null, task -> myRefreshing.setRefreshing(false));
     }
 
     // Provide a reference to the views for each data item

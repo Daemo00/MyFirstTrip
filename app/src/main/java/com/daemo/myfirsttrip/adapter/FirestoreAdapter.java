@@ -5,6 +5,7 @@ import android.support.design.widget.Snackbar;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 
+import com.daemo.myfirsttrip.MyRefreshing;
 import com.daemo.myfirsttrip.MySuperFragment;
 import com.daemo.myfirsttrip.common.ItemTouchHelperAdapter;
 import com.daemo.myfirsttrip.common.Utils;
@@ -40,10 +41,12 @@ public abstract class FirestoreAdapter<VH extends RecyclerView.ViewHolder>
     public Query mQuery;
     boolean isChooseMode;
     boolean isClickable;
+    MyRefreshing myRefreshing;
     private ListenerRegistration mRegistration;
 
     FirestoreAdapter(MySuperFragment fragment, Query query, Set<String> selected_ids) {
         this.fragment = fragment;
+        this.myRefreshing = fragment;
         this.mQuery = query;
         this.selected_ids = selected_ids;
     }
@@ -142,11 +145,11 @@ public abstract class FirestoreAdapter<VH extends RecyclerView.ViewHolder>
     }
 
     private void onDataChanging() {
-        fragment.setRefreshing(true);
+        myRefreshing.setRefreshing(true);
     }
 
     private void onDataChanged() {
-        fragment.setRefreshing(false);
+        myRefreshing.setRefreshing(false);
     }
 
     @Override
@@ -186,5 +189,9 @@ public abstract class FirestoreAdapter<VH extends RecyclerView.ViewHolder>
 
     public void setClickable(boolean clickable) {
         this.isClickable = clickable;
+    }
+
+    public void setMyRefreshing(MyRefreshing myRefreshing) {
+        this.myRefreshing = myRefreshing;
     }
 }

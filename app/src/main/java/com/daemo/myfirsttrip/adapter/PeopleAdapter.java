@@ -51,8 +51,8 @@ public class PeopleAdapter extends FirestoreAdapter<PeopleAdapter.ViewHolder> im
 
     @Override
     void deleteItem(DocumentSnapshot itemSnapshot) {
-        fragment.setRefreshing(true);
-        Data.deletePersonBatch(itemSnapshot.getReference(), null, task -> fragment.setRefreshing(false));
+        myRefreshing.setRefreshing(true);
+        Data.deletePersonBatch(itemSnapshot.getReference(), null, task -> myRefreshing.setRefreshing(false));
     }
 
     // Provide a reference to the views for each data item

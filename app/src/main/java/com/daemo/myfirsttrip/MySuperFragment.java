@@ -6,23 +6,23 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v4.widget.SwipeRefreshLayout;
-import android.support.v4.widget.SwipeRefreshLayout.OnRefreshListener;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewGroup.LayoutParams;
+import android.view.WindowManager;
 
 import com.daemo.myfirsttrip.R.id;
 import com.daemo.myfirsttrip.adapter.FirestoreAdapter;
 import com.daemo.myfirsttrip.common.Utils;
 
-import java.util.Arrays;
-
-public class MySuperFragment extends Fragment implements OnRefreshListener {
+public class MySuperFragment extends Fragment implements MyRefreshing {
     final String title = Utils.getTag(this);
     public MySuperFragment.OnFragmentInteractionListener mListener;
     FirestoreAdapter mAdapter;
+    boolean needsRefreshLayout;
+    private SwipeRefreshLayout swipeRefreshLayout;
 
     public MySuperFragment() {
         Log.d(Utils.getTag(this), "Called constructor");
@@ -44,13 +44,28 @@ public class MySuperFragment extends Fragment implements OnRefreshListener {
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View view = super.onCreateView(inflater, container, savedInstanceState);
-        SwipeRefreshLayout swipeRefreshLayout = generateSwipeRefreshLayout();
-        if (view instanceof ViewGroup) {
-            ViewGroup viewGroup = (ViewGroup) view;
-            viewGroup.addView(swipeRefreshLayout);
-            return viewGroup;
+        if (needsRefreshLayout) {
+            swipeRefreshLayout = generateSwipeRefreshLayout();
+            if (view instanceof ViewGroup) {
+                ViewGroup viewGroup = (ViewGroup) view;
+                viewGroup.addView(swipeRefreshLayout);
+                return viewGroup;
+            }
+            return swipeRefreshLayout;
         }
+        return view;
+    }
 
+    private SwipeRefreshLayout generateSwipeRefreshLayout() {
+        Context context = getContext();
+        if (context == null)
+            return null;
+        SwipeRefreshLayout swipeRefreshLayout = new SwipeRefreshLayout(getContext());
+        swipeRefreshLayout.setId(id.swipe_layout_superFragment);
+        swipeRefreshLayout.setLayoutParams(new LayoutParams(
+                LayoutParams.MATCH_PARENT,
+                LayoutParams.MATCH_PARENT));
+        swipeRefreshLayout.setOnRefreshListener(this);
         return swipeRefreshLayout;
     }
 
@@ -69,32 +84,22 @@ public class MySuperFragment extends Fragment implements OnRefreshListener {
         }
     }
 
-    private SwipeRefreshLayout generateSwipeRefreshLayout() {
-        Context context = getContext();
-        if (context == null)
-            return null;
-        SwipeRefreshLayout swipeRefreshLayout = new SwipeRefreshLayout(getContext());
-        swipeRefreshLayout.setId(id.swipe_layout_superFragment);
-        swipeRefreshLayout.setLayoutParams(new LayoutParams(
-                LayoutParams.MATCH_PARENT,
-                LayoutParams.MATCH_PARENT));
-        swipeRefreshLayout.setOnRefreshListener(this);
-        return swipeRefreshLayout;
-    }
-
     @Override
     public void onRefresh() {
         if (mAdapter != null)
             mAdapter.setQuery(mAdapter.mQuery);
     }
 
+    @Override
     public void setRefreshing(boolean isRefreshing) {
-        View view = getView();
-        if (view != null) {
-            View layout = view.findViewById(id.swipe_layout_superFragment);
-            if (layout instanceof SwipeRefreshLayout) {
-                SwipeRefreshLayout swipeRefreshLayout = (SwipeRefreshLayout) layout;
-                swipeRefreshLayout.setRefreshing(isRefreshing);
+        if (swipeRefreshLayout != null) {
+            swipeRefreshLayout.setRefreshing(isRefreshing);
+            MySuperActivity mySuperActivity = getMySuperActivity();
+            if (mySuperActivity == null) return;
+            if (isRefreshing) {
+                mySuperActivity.getWindow().setFlags(WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE, WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE);
+            } else {
+                mySuperActivity.getWindow().clearFlags(WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE);
             }
         }
     }
@@ -114,12 +119,6 @@ public class MySuperFragment extends Fragment implements OnRefreshListener {
     public void onDetach() {
         super.onDetach();
         mListener = null;
-    }
-
-    @Override
-    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-        Log.d(Utils.getTag(this), "onRequestPermissionsResult(" + requestCode + ", " + Arrays.toString(permissions) + ", " + Arrays.toString(grantResults) + ")");
     }
 
     public boolean allowBackPress() {

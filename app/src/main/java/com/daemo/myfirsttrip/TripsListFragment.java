@@ -55,13 +55,18 @@ public class TripsListFragment extends MySuperFragment implements EventListener<
         Bundle args = getArguments();
         if (args == null || args.isEmpty()) {
             currStatus = ListFragmentMode.ALL;
+            needsRefreshLayout = true;
         } else if (args.containsKey(Constants.EXTRA_PERSON_ID)) {
             personDocReference = Data.getPersonRef(args.getString(Constants.EXTRA_PERSON_ID));
             currStatus = ListFragmentMode.NESTED;
-            if (args.containsKey(Constants.EXTRA_CHOOSE) && args.getBoolean(Constants.EXTRA_CHOOSE))
-                currStatus = ListFragmentMode.CHOOSE;
-            if (args.containsKey(Constants.EXTRA_EDIT) && args.getBoolean(Constants.EXTRA_EDIT))
+            needsRefreshLayout = false;
+            if (args.containsKey(Constants.EXTRA_EDIT) && args.getBoolean(Constants.EXTRA_EDIT)) {
                 currStatus = ListFragmentMode.NESTED_EDIT;
+                needsRefreshLayout = false;
+            } else if (args.containsKey(Constants.EXTRA_CHOOSE) && args.getBoolean(Constants.EXTRA_CHOOSE)) {
+                currStatus = ListFragmentMode.CHOOSE;
+                needsRefreshLayout = true;
+            }
         }
     }
 
@@ -152,6 +157,7 @@ public class TripsListFragment extends MySuperFragment implements EventListener<
                             .whereEqualTo(String.format(Locale.getDefault(), "peopleIds.%s", orig_person.getId()), 1)
                             .limit(Constants.QUERY_LIMIT);
                     mAdapter = new TripsAdapter(this, query, selected_ids);
+                    mAdapter.setMyRefreshing((MyRefreshing) getParentFragment());
                 }
                 break;
             case ALL:
