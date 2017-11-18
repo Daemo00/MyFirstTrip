@@ -15,7 +15,7 @@
     <FrameLayout
         android:id="@+id/fragment_trips_list"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="match_parent"
         tools:layout="@layout/fragment_trips_list" />
 
 </android.support.v7.widget.LinearLayoutCompat>
