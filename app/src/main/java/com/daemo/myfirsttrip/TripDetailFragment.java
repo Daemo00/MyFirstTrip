@@ -32,6 +32,7 @@ public class TripDetailFragment extends MySuperFragment implements EventListener
     private ListenerRegistration listenerRegistration;
     private Trip trip;
     private DetailFragmentMode currStatus;
+    private MySuperFragment peopleListFragment;
 
 
     public TripDetailFragment() {
@@ -45,6 +46,7 @@ public class TripDetailFragment extends MySuperFragment implements EventListener
         if (args == null || args.isEmpty()) {
             // From tripsIds list, add a trip
             currStatus = DetailFragmentMode.NEW;
+            needsRefreshLayout = false;
             Data.createDraftTripFromRef(null, task -> {
                 if (task.getException() != null) {
                     getMySuperActivity().showToast(task.getException().getMessage());
@@ -61,6 +63,7 @@ public class TripDetailFragment extends MySuperFragment implements EventListener
                 args.containsKey(Constants.EXTRA_EDIT) && args.getBoolean(Constants.EXTRA_EDIT)) {
             // Click on a trip for edit
             currStatus = DetailFragmentMode.EDIT;
+            needsRefreshLayout = true;
             Data.createDraftTripFromRef(Data.getTripRef(args.getString(Constants.EXTRA_TRIP_ID)), task -> {
                 if (task.getException() != null) {
                     getMySuperActivity().showToast(task.getException().getMessage());
@@ -76,6 +79,7 @@ public class TripDetailFragment extends MySuperFragment implements EventListener
         if (args.containsKey(Constants.EXTRA_TRIP_ID)) {
             // Click on a trip to see details
             currStatus = DetailFragmentMode.VIEW;
+            needsRefreshLayout = true;
             tripRef = Data.getTripRef(args.getString(Constants.EXTRA_TRIP_ID));
         }
     }
@@ -181,8 +185,10 @@ public class TripDetailFragment extends MySuperFragment implements EventListener
     public boolean allowBackPress() {
         if (trip != null && trip.isDraft()) {
             getMySuperActivity().showOkCancelDialog("Confirm",
-                    "Confirm the current modifications?",
-                    (dialogInterface, i) -> confirmTrip());
+                    "Confirm the current modifications or cancel them",
+                    (dialogInterface, i) -> confirmTrip(),
+                    null,
+                    (dialogInterface, i) -> getFragmentManager().popBackStack());
             return false;
         }
         return super.allowBackPress();
@@ -246,9 +252,10 @@ public class TripDetailFragment extends MySuperFragment implements EventListener
         b.putString(Constants.EXTRA_TRIP_ID, trip.getId());
         b.putBoolean(Constants.EXTRA_EDIT, true);
         FragmentManager childFragmentManager = getChildFragmentManager();
+        peopleListFragment = (MySuperFragment) Fragment.instantiate(getContext(), PeopleListFragment.class.getName(), b);
         childFragmentManager.beginTransaction().replace(
                 R.id.fragment_people_list,
-                Fragment.instantiate(getContext(), PeopleListFragment.class.getName(), b)
+                peopleListFragment
         ).commit();
     }
 
@@ -261,10 +268,16 @@ public class TripDetailFragment extends MySuperFragment implements EventListener
         Bundle b = new Bundle();
         b.putString(Constants.EXTRA_TRIP_ID, trip.getId());
         FragmentManager childFragmentManager = getChildFragmentManager();
+        peopleListFragment = (MySuperFragment) Fragment.instantiate(getContext(), PeopleListFragment.class.getName(), b);
         childFragmentManager.beginTransaction().replace(
                 R.id.fragment_people_list,
-                Fragment.instantiate(getContext(), PeopleListFragment.class.getName(), b)
+                peopleListFragment
         ).commit();
+    }
+
+    @Override
+    public void onRefresh() {
+        peopleListFragment.mAdapter.setQuery(peopleListFragment.mAdapter.mQuery);
     }
 
     @Override

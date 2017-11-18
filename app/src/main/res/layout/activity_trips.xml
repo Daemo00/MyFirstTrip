@@ -2,6 +2,7 @@
 <android.support.v7.widget.LinearLayoutCompat xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/activity_layout"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical">
@@ -12,11 +13,6 @@
         android:layout_height="match_parent"
         android:fitsSystemWindows="true"
         tools:openDrawer="start">
-
-        <!--<include-->
-        <!--layout="@layout/app_bar_trips"-->
-        <!--android:layout_width="match_parent"-->
-        <!--android:layout_height="match_parent" />-->
 
         <RelativeLayout
             android:layout_width="match_parent"
@@ -34,7 +30,6 @@
                     android:layout_height="?android:attr/actionBarSize"
                     android:background="@color/colorPrimary"
                     app:popupTheme="@style/AppTheme.PopupOverlay" />
-
             </android.support.design.widget.AppBarLayout>
 
             <android.support.v7.widget.ContentFrameLayout

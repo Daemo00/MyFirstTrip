@@ -132,17 +132,18 @@ public class MySuperActivity extends AppCompatActivity
     }
 
     public void showOkCancelDialog(final CharSequence title, final String message, final DialogInterface.OnClickListener okClickListener) {
-        showOkCancelDialog(title, message, okClickListener, null);
+        showOkCancelDialog(title, message, okClickListener, null, null);
     }
 
-    private void showOkCancelDialog(final CharSequence title, final String message, final DialogInterface.OnClickListener okClickListener, final DialogInterface.OnClickListener cancelClickListener) {
+    void showOkCancelDialog(final CharSequence title, final String message, final DialogInterface.OnClickListener okClickListener, final DialogInterface.OnClickListener cancelClickListener, DialogInterface.OnClickListener discardClickListener) {
         final Activity thisActivity = this;
         this.runOnUiThread(() -> {
             AlertDialog alertDialog = new AlertDialog.Builder(thisActivity)
                     .setMessage(message)
                     .setTitle(title)
                     .setPositiveButton("Ok", okClickListener)
-                    .setNegativeButton("Cancel", cancelClickListener)
+                    .setNegativeButton("Discard", discardClickListener)
+                    .setNeutralButton("Cancel", cancelClickListener)
                     .setCancelable(false)
                     .create();
             alertDialog.show();
@@ -207,7 +208,7 @@ public class MySuperActivity extends AppCompatActivity
                         (dialogInterface, i) -> {
                         },
                         (dialogInterface, i) -> {
-                        });
+                        }, null);
             case id.nav_share:
             case id.nav_send:
                 showOkCancelDialog("Sorry!", "Not yet implemented",
