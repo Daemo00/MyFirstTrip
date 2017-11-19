@@ -17,7 +17,7 @@ import android.view.ViewGroup;
 import com.daemo.myfirsttrip.adapter.PeopleAdapter;
 import com.daemo.myfirsttrip.common.Constants;
 import com.daemo.myfirsttrip.common.SimpleItemTouchHelperCallback;
-import com.daemo.myfirsttrip.database.Data;
+import com.daemo.myfirsttrip.database.DataTrip;
 import com.daemo.myfirsttrip.models.Trip;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
@@ -57,7 +57,7 @@ public class PeopleListFragment extends MySuperFragment implements EventListener
             currStatus = ListFragmentMode.ALL;
             needsRefreshLayout = true;
         } else if (args.containsKey(Constants.EXTRA_TRIP_ID)) {
-            tripDocReference = Data.getTripRef(args.getString(Constants.EXTRA_TRIP_ID));
+            tripDocReference = DataTrip.getTripRef(args.getString(Constants.EXTRA_TRIP_ID));
             currStatus = ListFragmentMode.NESTED;
             needsRefreshLayout = false;
             if (args.containsKey(Constants.EXTRA_EDIT) && args.getBoolean(Constants.EXTRA_EDIT)) {
@@ -222,7 +222,7 @@ public class PeopleListFragment extends MySuperFragment implements EventListener
         orig_trip.setPeopleIds(selected_peopleIds);
 
         setRefreshing(true);
-        Data.updateTripBatch(orig_trip, mAdapter.unselected_ids, task -> {
+        DataTrip.updateTripBatch(orig_trip, mAdapter.unselected_ids, task -> {
             FragmentManager fragmentManager = getFragmentManager();
             if (fragmentManager != null)
                 // Go back to whoever called this

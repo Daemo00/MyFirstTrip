@@ -69,18 +69,18 @@ public class MySuperActivity extends AppCompatActivity
     }
 
 //    private void initDummyData() {
-//        for (Trip trip : Data.getTrips(null)) {
+//        for (Trip trip : DataPerson.getTrips(null)) {
 //            DocumentReference curTrip = mFirestore.collection("trips")
 //                    .document(String.valueOf(trip.id));
-//            for (Person person : Data.getPeople(trip))
+//            for (Person person : DataPerson.getPeople(trip))
 //                trip.peopleIds.put(String.valueOf(person.id), 1);
 //
 //            curTrip.set(trip);
 //        }
-//        for (Person person: Data.getPeople(null)) {
+//        for (Person person: DataPerson.getPeople(null)) {
 //            DocumentReference curPerson = mFirestore.collection("people")
 //                    .document(String.valueOf(person.id));
-//            for (Trip trip : Data.getTrips(person))
+//            for (Trip trip : DataPerson.getTrips(person))
 //                person.tripsIds.put(String.valueOf(trip.id), 1);
 //
 //            curPerson.set(person);

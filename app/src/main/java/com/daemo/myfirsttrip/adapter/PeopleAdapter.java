@@ -13,7 +13,7 @@ import com.daemo.myfirsttrip.PersonDetailFragment;
 import com.daemo.myfirsttrip.R;
 import com.daemo.myfirsttrip.common.Constants;
 import com.daemo.myfirsttrip.common.ItemTouchHelperAdapter;
-import com.daemo.myfirsttrip.database.Data;
+import com.daemo.myfirsttrip.database.DataPerson;
 import com.daemo.myfirsttrip.models.Person;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.Query;
@@ -52,7 +52,7 @@ public class PeopleAdapter extends FirestoreAdapter<PeopleAdapter.ViewHolder> im
     @Override
     void deleteItem(DocumentSnapshot itemSnapshot) {
         myRefreshing.setRefreshing(true);
-        Data.deletePersonBatch(itemSnapshot.getReference(), null, task -> myRefreshing.setRefreshing(false));
+        DataPerson.deletePersonBatch(itemSnapshot.getReference(), null, task -> myRefreshing.setRefreshing(false));
     }
 
     // Provide a reference to the views for each data item

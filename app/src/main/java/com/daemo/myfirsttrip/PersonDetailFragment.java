@@ -16,7 +16,7 @@ import android.widget.EditText;
 import android.widget.TextView;
 
 import com.daemo.myfirsttrip.common.Constants;
-import com.daemo.myfirsttrip.database.Data;
+import com.daemo.myfirsttrip.database.DataPerson;
 import com.daemo.myfirsttrip.models.Person;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
@@ -47,7 +47,7 @@ public class PersonDetailFragment extends MySuperFragment implements EventListen
             // From peopleIds list, add a person
             currStatus = DetailFragmentMode.NEW;
             needsRefreshLayout = false;
-            Data.createDraftPersonFromRef(null, task -> {
+            DataPerson.createDraftPersonFromRef(null, task -> {
                 if (task.getException() != null) {
                     getMySuperActivity().showToast(task.getException().getMessage());
                     return;
@@ -64,7 +64,7 @@ public class PersonDetailFragment extends MySuperFragment implements EventListen
             // Click on a person for edit
             currStatus = DetailFragmentMode.EDIT;
             needsRefreshLayout = true;
-            Data.createDraftPersonFromRef(Data.getPersonRef(args.getString(Constants.EXTRA_PERSON_ID)), task -> {
+            DataPerson.createDraftPersonFromRef(DataPerson.getPersonRef(args.getString(Constants.EXTRA_PERSON_ID)), task -> {
                 if (task.getException() != null) {
                     getMySuperActivity().showToast(task.getException().getMessage());
                     return;
@@ -80,7 +80,7 @@ public class PersonDetailFragment extends MySuperFragment implements EventListen
             // Click on a person to see details
             currStatus = DetailFragmentMode.VIEW;
             needsRefreshLayout = true;
-            personRef = Data.getPersonRef(args.getString(Constants.EXTRA_PERSON_ID));
+            personRef = DataPerson.getPersonRef(args.getString(Constants.EXTRA_PERSON_ID));
         }
     }
 
@@ -202,7 +202,7 @@ public class PersonDetailFragment extends MySuperFragment implements EventListen
             person.setSurname(((EditText) root.findViewById(R.id.person_surname)).getText().toString());
         }
         setRefreshing(true);
-        Data.commitPersonBatch(person, task -> setRefreshing(false));
+        DataPerson.commitPersonBatch(person, task -> setRefreshing(false));
         // needed, otherwise this fragment isn't correctly removed
         FragmentManager fragmentManager = getFragmentManager();
         if (fragmentManager != null) {
@@ -288,7 +288,7 @@ public class PersonDetailFragment extends MySuperFragment implements EventListen
 
     private void cleanData() {
         if (person != null && person.isDraft())
-            Data.deletePersonBatch(person.getId(), this);
+            DataPerson.deletePersonBatch(person.getId(), this);
     }
 
     @Override

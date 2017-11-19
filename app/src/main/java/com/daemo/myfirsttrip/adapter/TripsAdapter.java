@@ -13,7 +13,7 @@ import com.daemo.myfirsttrip.R;
 import com.daemo.myfirsttrip.TripDetailFragment;
 import com.daemo.myfirsttrip.common.Constants;
 import com.daemo.myfirsttrip.common.ItemTouchHelperAdapter;
-import com.daemo.myfirsttrip.database.Data;
+import com.daemo.myfirsttrip.database.DataTrip;
 import com.daemo.myfirsttrip.models.Trip;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.Query;
@@ -52,7 +52,7 @@ public class TripsAdapter extends FirestoreAdapter<TripsAdapter.ViewHolder> impl
     @Override
     void deleteItem(DocumentSnapshot itemSnapshot) {
         myRefreshing.setRefreshing(true);
-        Data.deleteTripBatch(itemSnapshot, null, task -> myRefreshing.setRefreshing(false));
+        DataTrip.deleteTripBatch(itemSnapshot, null, task -> myRefreshing.setRefreshing(false));
     }
 
     // Provide a reference to the views for each data item

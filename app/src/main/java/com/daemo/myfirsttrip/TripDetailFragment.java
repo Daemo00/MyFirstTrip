@@ -16,7 +16,7 @@ import android.widget.EditText;
 import android.widget.TextView;
 
 import com.daemo.myfirsttrip.common.Constants;
-import com.daemo.myfirsttrip.database.Data;
+import com.daemo.myfirsttrip.database.DataTrip;
 import com.daemo.myfirsttrip.models.Trip;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
@@ -47,7 +47,7 @@ public class TripDetailFragment extends MySuperFragment implements EventListener
             // From tripsIds list, add a trip
             currStatus = DetailFragmentMode.NEW;
             needsRefreshLayout = false;
-            Data.createDraftTripFromRef(null, task -> {
+            DataTrip.createDraftTripFromRef(null, task -> {
                 if (task.getException() != null) {
                     getMySuperActivity().showToast(task.getException().getMessage());
                     return;
@@ -64,7 +64,7 @@ public class TripDetailFragment extends MySuperFragment implements EventListener
             // Click on a trip for edit
             currStatus = DetailFragmentMode.EDIT;
             needsRefreshLayout = true;
-            Data.createDraftTripFromRef(Data.getTripRef(args.getString(Constants.EXTRA_TRIP_ID)), task -> {
+            DataTrip.createDraftTripFromRef(DataTrip.getTripRef(args.getString(Constants.EXTRA_TRIP_ID)), task -> {
                 if (task.getException() != null) {
                     getMySuperActivity().showToast(task.getException().getMessage());
                     return;
@@ -80,7 +80,7 @@ public class TripDetailFragment extends MySuperFragment implements EventListener
             // Click on a trip to see details
             currStatus = DetailFragmentMode.VIEW;
             needsRefreshLayout = true;
-            tripRef = Data.getTripRef(args.getString(Constants.EXTRA_TRIP_ID));
+            tripRef = DataTrip.getTripRef(args.getString(Constants.EXTRA_TRIP_ID));
         }
     }
 
@@ -202,7 +202,7 @@ public class TripDetailFragment extends MySuperFragment implements EventListener
             trip.setSubtitle(((EditText) root.findViewById(R.id.trip_subtitle)).getText().toString());
         }
         setRefreshing(true);
-        Data.commitTripBatch(trip, task -> setRefreshing(false));
+        DataTrip.commitTripBatch(trip, task -> setRefreshing(false));
         // needed, otherwise this fragment isn't correctly removed
         FragmentManager fragmentManager = getFragmentManager();
         if (fragmentManager != null) {
@@ -288,7 +288,7 @@ public class TripDetailFragment extends MySuperFragment implements EventListener
 
     private void cleanData() {
         if (trip != null && trip.isDraft())
-            Data.deleteTripBatch(trip.getId(), this);
+            DataTrip.deleteTripBatch(trip.getId(), this);
     }
 
     @Override
