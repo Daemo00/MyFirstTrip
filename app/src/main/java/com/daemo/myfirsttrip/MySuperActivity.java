@@ -24,12 +24,15 @@ import android.view.Gravity;
 import android.view.MenuItem;
 import android.widget.Toast;
 
-import com.daemo.myfirsttrip.MySuperFragment.OnFragmentInteractionListener;
 import com.daemo.myfirsttrip.R.id;
 import com.daemo.myfirsttrip.R.layout;
 import com.daemo.myfirsttrip.R.string;
 import com.daemo.myfirsttrip.common.Constants;
 import com.daemo.myfirsttrip.common.Utils;
+import com.daemo.myfirsttrip.fragments.MySuperFragment;
+import com.daemo.myfirsttrip.fragments.MySuperFragment.OnFragmentInteractionListener;
+import com.daemo.myfirsttrip.fragments.PeopleListFragment;
+import com.daemo.myfirsttrip.fragments.TripsListFragment;
 import com.google.firebase.firestore.FirebaseFirestore;
 
 import java.util.List;
@@ -37,7 +40,6 @@ import java.util.List;
 public class MySuperActivity extends AppCompatActivity
         implements OnNavigationItemSelectedListener, OnFragmentInteractionListener {
 
-    FirebaseFirestore mFirestore;
     private DrawerLayout drawer;
     private ActionBarDrawerToggle toggle;
     private MyBroadcastReceiver tripsReceiver;
@@ -57,35 +59,12 @@ public class MySuperActivity extends AppCompatActivity
         // Enable Firestore logging
         FirebaseFirestore.setLoggingEnabled(true);
 
-        // Firestore
-        mFirestore = FirebaseFirestore.getInstance();
-//        initDummyData();
-
         setupActionBar();
 
         setupDrawer();
 
         registerReceiver(tripsReceiver = new MyBroadcastReceiver(), new IntentFilter(Constants.ACTION_TRIP_SELECTED));
     }
-
-//    private void initDummyData() {
-//        for (Trip trip : DataPerson.getTrips(null)) {
-//            DocumentReference curTrip = mFirestore.collection("trips")
-//                    .document(String.valueOf(trip.id));
-//            for (Person person : DataPerson.getPeople(trip))
-//                trip.peopleIds.put(String.valueOf(person.id), 1);
-//
-//            curTrip.set(trip);
-//        }
-//        for (Person person: DataPerson.getPeople(null)) {
-//            DocumentReference curPerson = mFirestore.collection("people")
-//                    .document(String.valueOf(person.id));
-//            for (Trip trip : DataPerson.getTrips(person))
-//                person.tripsIds.put(String.valueOf(trip.id), 1);
-//
-//            curPerson.set(person);
-//        }
-//    }
 
     private void setupDrawer() {
         drawer = findViewById(id.drawer_layout);
@@ -135,7 +114,7 @@ public class MySuperActivity extends AppCompatActivity
         showOkCancelDialog(title, message, okClickListener, null, null);
     }
 
-    void showOkCancelDialog(final CharSequence title, final String message, final DialogInterface.OnClickListener okClickListener, final DialogInterface.OnClickListener cancelClickListener, DialogInterface.OnClickListener discardClickListener) {
+    public void showOkCancelDialog(final CharSequence title, final String message, final DialogInterface.OnClickListener okClickListener, final DialogInterface.OnClickListener cancelClickListener, DialogInterface.OnClickListener discardClickListener) {
         final Activity thisActivity = this;
         this.runOnUiThread(() -> {
             AlertDialog alertDialog = new AlertDialog.Builder(thisActivity)

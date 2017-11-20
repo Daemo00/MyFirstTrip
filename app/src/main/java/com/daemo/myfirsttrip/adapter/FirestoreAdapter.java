@@ -6,9 +6,9 @@ import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 
 import com.daemo.myfirsttrip.MyRefreshing;
-import com.daemo.myfirsttrip.MySuperFragment;
 import com.daemo.myfirsttrip.common.ItemTouchHelperAdapter;
 import com.daemo.myfirsttrip.common.Utils;
+import com.daemo.myfirsttrip.fragments.MySuperFragment;
 import com.google.firebase.firestore.DocumentChange;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.EventListener;
@@ -84,7 +84,7 @@ public abstract class FirestoreAdapter<VH extends RecyclerView.ViewHolder>
         }
     }
 
-    public void stopListening() {
+    private void stopListening() {
         if (mRegistration != null) {
             mRegistration.remove();
             mRegistration = null;

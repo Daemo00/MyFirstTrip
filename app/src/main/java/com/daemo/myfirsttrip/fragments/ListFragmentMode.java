@@ -1,6 +1,6 @@
-package com.daemo.myfirsttrip;
+package com.daemo.myfirsttrip.fragments;
 
-enum ListFragmentMode {
+public enum ListFragmentMode {
     /**
      * This fragment has been created to choose an element
      */
@@ -17,19 +17,4 @@ enum ListFragmentMode {
      * This fragment shows all the elements
      */
     ALL
-}
-
-enum DetailFragmentMode {
-    /**
-     * The element shown in this fragment can be edited
-     */
-    EDIT,
-    /**
-     * The element shown is new
-     */
-    NEW,
-    /**
-     * The element shown in this fragment can not be edited
-     */
-    VIEW
 }

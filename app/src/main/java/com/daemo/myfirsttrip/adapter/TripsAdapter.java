@@ -8,12 +8,12 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
-import com.daemo.myfirsttrip.MySuperFragment;
 import com.daemo.myfirsttrip.R;
-import com.daemo.myfirsttrip.TripDetailFragment;
 import com.daemo.myfirsttrip.common.Constants;
 import com.daemo.myfirsttrip.common.ItemTouchHelperAdapter;
 import com.daemo.myfirsttrip.database.DataTrip;
+import com.daemo.myfirsttrip.fragments.MySuperFragment;
+import com.daemo.myfirsttrip.fragments.TripDetailFragment;
 import com.daemo.myfirsttrip.models.Trip;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.Query;

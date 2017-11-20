@@ -122,7 +122,7 @@ public class DataPerson {
         batch.commit().addOnCompleteListener(onCompleteListener);
     }
 
-    public static void createDraftPersonFromRef(DocumentReference personDocReference, OnCompleteListener<DocumentReference> onCompleteListener) {
+    public static void createDraftPersonFromRef(@Nullable DocumentReference personDocReference, OnCompleteListener<DocumentReference> onCompleteListener) {
         DocumentReference draftPersonDocReference = FirebaseFirestore.getInstance().collection(Constants.PEOPLE_COLLECTION).document();
         if (personDocReference == null) {
             WriteBatch batch = FirebaseFirestore.getInstance().batch();

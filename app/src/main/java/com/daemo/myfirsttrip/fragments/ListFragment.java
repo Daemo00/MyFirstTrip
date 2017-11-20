@@ -1,4 +1,4 @@
-package com.daemo.myfirsttrip;
+package com.daemo.myfirsttrip.fragments;
 
 import android.os.Bundle;
 import android.support.annotation.NonNull;
@@ -14,11 +14,12 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 
-import com.daemo.myfirsttrip.adapter.TripsAdapter;
+import com.daemo.myfirsttrip.MyRefreshing;
+import com.daemo.myfirsttrip.R;
+import com.daemo.myfirsttrip.adapter.FirestoreAdapter;
 import com.daemo.myfirsttrip.common.Constants;
 import com.daemo.myfirsttrip.common.SimpleItemTouchHelperCallback;
-import com.daemo.myfirsttrip.database.DataPerson;
-import com.daemo.myfirsttrip.models.Person;
+import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.EventListener;
@@ -29,25 +30,17 @@ import com.google.firebase.firestore.Query;
 
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 
 
-public class TripsListFragment extends MySuperFragment implements EventListener<DocumentSnapshot> {
+public abstract class ListFragment extends MySuperFragment implements EventListener<DocumentSnapshot> {
 
+    public FirestoreAdapter mAdapter;
+    private DocumentReference docReference;
     private RecyclerView mRecyclerView;
-    /**
-     * When this fragment is summoned to add tripsIds to a person, this is that person
-     */
-    private Person orig_person;
     private ListenerRegistration listenerRegistration;
-    private DocumentReference personDocReference;
     private ListFragmentMode currStatus;
-
-    public TripsListFragment() {
-        // Required empty public constructor
-    }
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
@@ -56,8 +49,8 @@ public class TripsListFragment extends MySuperFragment implements EventListener<
         if (args == null || args.isEmpty()) {
             currStatus = ListFragmentMode.ALL;
             needsRefreshLayout = true;
-        } else if (args.containsKey(Constants.EXTRA_PERSON_ID)) {
-            personDocReference = DataPerson.getPersonRef(args.getString(Constants.EXTRA_PERSON_ID));
+        } else if (args.containsKey(getExtraItemId())) {
+            docReference = getDocReference(args);
             currStatus = ListFragmentMode.NESTED;
             needsRefreshLayout = false;
             if (args.containsKey(Constants.EXTRA_EDIT) && args.getBoolean(Constants.EXTRA_EDIT)) {
@@ -75,7 +68,7 @@ public class TripsListFragment extends MySuperFragment implements EventListener<
                              Bundle savedInstanceState) {
         View parent = super.onCreateView(inflater, container, savedInstanceState);
         // Inflate the layout for this fragment
-        View root = inflater.inflate(R.layout.fragment_trips_list, container, false);
+        View root = inflater.inflate(getLayout(), container, false);
         if (parent instanceof ViewGroup) {
             ViewGroup viewGroup = (ViewGroup) parent;
             viewGroup.addView(root);
@@ -88,12 +81,12 @@ public class TripsListFragment extends MySuperFragment implements EventListener<
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-        mRecyclerView = view.findViewById(R.id.list_trips);
+        mRecyclerView = view.findViewById(getList_id());
         switch (currStatus) {
             case CHOOSE:
             case NESTED:
             case NESTED_EDIT:
-                // List will be updated when personDocReference is resolved
+                // List will be updated when docReference is resolved
                 break;
             case ALL:
                 fillListView();
@@ -108,12 +101,18 @@ public class TripsListFragment extends MySuperFragment implements EventListener<
             case CHOOSE:
             case NESTED:
             case NESTED_EDIT:
-                if (listenerRegistration == null)
-                    listenerRegistration = personDocReference.addSnapshotListener(this);
+                if (listenerRegistration == null && docReference!= null)
+                    listenerRegistration = docReference.addSnapshotListener(this);
                 break;
             case ALL:
                 break;
         }
+    }
+
+    @Override
+    public void onRefresh() {
+        if (mAdapter != null)
+            mAdapter.setQuery(mAdapter.mQuery);
     }
 
     @Override
@@ -134,37 +133,37 @@ public class TripsListFragment extends MySuperFragment implements EventListener<
     }
 
     private void fillListView() {
-        FirebaseFirestore mFirestore = getMySuperActivity().mFirestore;
+        FirebaseFirestore mFirestore = FirebaseFirestore.getInstance();
         Query query;
         Set<String> selected_ids = new HashSet<>();
         mRecyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
         mRecyclerView.setHasFixedSize(true);
         switch (currStatus) {
             case CHOOSE:
-                if (orig_person != null) {
-                    // Get all trips and populate selected_ids
-                    query = mFirestore.collection(Constants.TRIPS_COLLECTION)
+                if (isItemSet()) {
+                    // Get all items and populate selected_ids
+                    query = mFirestore.collection(getCollection())
                             .limit(Constants.QUERY_LIMIT);
-                    selected_ids.addAll(orig_person.getTripsIds().keySet());
-                    mAdapter = new TripsAdapter(this, query, selected_ids);
+                    selected_ids.addAll(getItemRelatedIds());
+                    mAdapter = generateAdapter(query, selected_ids);
                 }
                 break;
             case NESTED:
             case NESTED_EDIT:
-                if (orig_person != null) {
-                    // Get only trips in orig_person
-                    query = mFirestore.collection(Constants.TRIPS_COLLECTION)
-                            .whereEqualTo(String.format(Locale.getDefault(), "peopleIds.%s", orig_person.getId()), 1)
+                if (isItemSet()) {
+                    // Get only items in origItem
+                    query = mFirestore.collection(getCollection())
+                            .whereEqualTo(getNestedFilter(), 1)
                             .limit(Constants.QUERY_LIMIT);
-                    mAdapter = new TripsAdapter(this, query, selected_ids);
+                    mAdapter = generateAdapter(query, selected_ids);
                     mAdapter.setMyRefreshing((MyRefreshing) getParentFragment());
                 }
                 break;
             case ALL:
-                // Get all the trips!
-                query = mFirestore.collection(Constants.TRIPS_COLLECTION)
+                // Get all the items!
+                query = mFirestore.collection(getCollection())
                         .limit(Constants.QUERY_LIMIT);
-                mAdapter = new TripsAdapter(this, query, selected_ids);
+                mAdapter = generateAdapter(query, selected_ids);
                 // Allow edit on the list only if we are in the main list
                 ItemTouchHelper.Callback callback = new SimpleItemTouchHelperCallback(mAdapter);
                 ItemTouchHelper touchHelper = new ItemTouchHelper(callback);
@@ -182,47 +181,48 @@ public class TripsListFragment extends MySuperFragment implements EventListener<
         super.onCreateOptionsMenu(menu, inflater);
         switch (currStatus) {
             case CHOOSE:
-                inflater.inflate(R.menu.trips_list_choose, menu);
+                inflater.inflate(getMenu_choose(), menu);
                 break;
             case NESTED:
             case NESTED_EDIT:
                 break;
             case ALL:
-                inflater.inflate(R.menu.trips_list, menu);
+                inflater.inflate(getMenuAll(), menu);
                 break;
         }
     }
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        switch (item.getItemId()) {
-            case R.id.add_trip:
-                Bundle b = new Bundle();
-                b.putBoolean(Constants.EXTRA_ADD_TO_BACKSTACK, true);
-                b.putString(Constants.EXTRA_REPLACE_FRAGMENT, TripDetailFragment.class.getName());
-                mListener.onFragmentInteraction(b);
-                return true;
-            case R.id.confirm_selection:
-                confirmSelection();
-                return true;
+        int itemId = item.getItemId();
+        if (itemId == getMenu_item_add()) {
+            Bundle b = new Bundle();
+            b.putBoolean(Constants.EXTRA_ADD_TO_BACKSTACK, true);
+            b.putString(Constants.EXTRA_REPLACE_FRAGMENT, getDetailFragmentName());
+            mListener.onFragmentInteraction(b);
+            return true;
+        } else if (itemId == R.id.confirm_selection) {
+            confirmSelection();
+            return true;
         }
         return super.onOptionsItemSelected(item);
     }
 
     private void confirmSelection() {
-        // Update the orig_person with the selected trips
-        if (!orig_person.isDraft())
+        // Update the origItem with the selected items
+        if (!getIsDraft())
             getMySuperActivity().showToast("Something went wrong, this should be a draft");
-        Map<String, Integer> selected_tripsIds = new HashMap<>();
+        Map<String, Integer> relatedIds = new HashMap<>();
         for (Object selected_id : mAdapter.selected_ids)
             if (selected_id instanceof String) {
                 String selectedId = (String) selected_id;
-                selected_tripsIds.put(selectedId, 1);
+                relatedIds.put(selectedId, 1);
             }
-        orig_person.setTripsIds(selected_tripsIds);
+        setItemRelatedIds(relatedIds);
 
         setRefreshing(true);
-        DataPerson.updatePersonBatch(orig_person, mAdapter.unselected_ids, task -> {
+
+        updateItem(task -> {
             FragmentManager fragmentManager = getFragmentManager();
             if (fragmentManager != null)
                 // Go back to whoever called this
@@ -239,7 +239,42 @@ public class TripsListFragment extends MySuperFragment implements EventListener<
             getMySuperActivity().showToast(e.getMessage());
             return;
         }
-        orig_person = documentSnapshot.toObject(Person.class);
+        setItem(documentSnapshot);
         fillListView();
     }
+
+    protected abstract Set<String> getItemRelatedIds();
+
+    protected abstract void setItemRelatedIds(Map<String, Integer> selectedIds);
+
+    protected abstract String getDetailFragmentName();
+
+    protected abstract void updateItem(OnCompleteListener<Void> listener);
+
+    protected abstract void setItem(DocumentSnapshot documentSnapshot);
+
+    protected abstract String getExtraItemId();
+
+    protected abstract DocumentReference getDocReference(Bundle args);
+
+    protected abstract int getLayout();
+
+    protected abstract int getList_id();
+
+    protected abstract String getCollection();
+
+    @NonNull
+    protected abstract FirestoreAdapter generateAdapter(Query query, Set<String> selected_ids);
+
+    protected abstract boolean isItemSet();
+
+    abstract boolean getIsDraft();
+
+    protected abstract String getNestedFilter();
+
+    protected abstract int getMenu_choose();
+
+    abstract int getMenuAll();
+
+    protected abstract int getMenu_item_add();
 }

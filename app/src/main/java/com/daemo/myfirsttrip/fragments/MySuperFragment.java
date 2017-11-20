@@ -1,4 +1,4 @@
-package com.daemo.myfirsttrip;
+package com.daemo.myfirsttrip.fragments;
 
 import android.content.Context;
 import android.os.Bundle;
@@ -13,14 +13,14 @@ import android.view.ViewGroup;
 import android.view.ViewGroup.LayoutParams;
 import android.view.WindowManager;
 
+import com.daemo.myfirsttrip.MyRefreshing;
+import com.daemo.myfirsttrip.MySuperActivity;
 import com.daemo.myfirsttrip.R.id;
-import com.daemo.myfirsttrip.adapter.FirestoreAdapter;
 import com.daemo.myfirsttrip.common.Utils;
 
-public class MySuperFragment extends Fragment implements MyRefreshing {
-    final String title = Utils.getTag(this);
+public abstract class MySuperFragment extends Fragment implements MyRefreshing {
+    public final String title = Utils.getTag(this);
     public MySuperFragment.OnFragmentInteractionListener mListener;
-    FirestoreAdapter mAdapter;
     boolean needsRefreshLayout;
     private SwipeRefreshLayout swipeRefreshLayout;
 
@@ -67,27 +67,6 @@ public class MySuperFragment extends Fragment implements MyRefreshing {
                 LayoutParams.MATCH_PARENT));
         swipeRefreshLayout.setOnRefreshListener(this);
         return swipeRefreshLayout;
-    }
-
-    @Override
-    public void onStart() {
-        super.onStart();
-        if (mAdapter != null)
-            mAdapter.startListening();
-    }
-
-    @Override
-    public void onStop() {
-        super.onStop();
-        if (mAdapter != null) {
-            mAdapter.stopListening();
-        }
-    }
-
-    @Override
-    public void onRefresh() {
-        if (mAdapter != null)
-            mAdapter.setQuery(mAdapter.mQuery);
     }
 
     @Override

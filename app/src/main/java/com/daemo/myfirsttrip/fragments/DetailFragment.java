@@ -1,5 +1,4 @@
-package com.daemo.myfirsttrip;
-
+package com.daemo.myfirsttrip.fragments;
 
 import android.os.Bundle;
 import android.support.annotation.NonNull;
@@ -12,12 +11,8 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.EditText;
-import android.widget.TextView;
 
 import com.daemo.myfirsttrip.common.Constants;
-import com.daemo.myfirsttrip.database.DataTrip;
-import com.daemo.myfirsttrip.models.Trip;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.firestore.DocumentReference;
@@ -26,63 +21,63 @@ import com.google.firebase.firestore.EventListener;
 import com.google.firebase.firestore.FirebaseFirestoreException;
 import com.google.firebase.firestore.ListenerRegistration;
 
-
-public class TripDetailFragment extends MySuperFragment implements EventListener<DocumentSnapshot>, OnCompleteListener<Void> {
-    private DocumentReference tripRef;
+public abstract class DetailFragment extends MySuperFragment implements EventListener<DocumentSnapshot>, OnCompleteListener<Void> {
+    private DocumentReference itemRef;
     private ListenerRegistration listenerRegistration;
-    private Trip trip;
     private DetailFragmentMode currStatus;
-    private MySuperFragment peopleListFragment;
+    private ListFragment listFragment;
 
 
-    public TripDetailFragment() {
-        // Required empty public constructor
-    }
+    abstract DocumentReference getItemRef(String itemId);
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         Bundle args = getArguments();
         if (args == null || args.isEmpty()) {
-            // From tripsIds list, add a trip
+            // From peopleIds list, add a person
             currStatus = DetailFragmentMode.NEW;
             needsRefreshLayout = false;
-            DataTrip.createDraftTripFromRef(null, task -> {
+            createDraftItemFromRef(null, task -> {
                 if (task.getException() != null) {
                     getMySuperActivity().showToast(task.getException().getMessage());
                     return;
                 }
-                tripRef = task.getResult();
+                itemRef = task.getResult();
                 if (listenerRegistration == null)
-                    listenerRegistration = tripRef.addSnapshotListener(TripDetailFragment.this);
+                    listenerRegistration = itemRef.addSnapshotListener(DetailFragment.this);
             });
             return;
         }
 
-        if (args.containsKey(Constants.EXTRA_TRIP_ID) &&
+        if (args.containsKey(getExtraItemId()) &&
                 args.containsKey(Constants.EXTRA_EDIT) && args.getBoolean(Constants.EXTRA_EDIT)) {
-            // Click on a trip for edit
+            // Click on a person for edit
             currStatus = DetailFragmentMode.EDIT;
             needsRefreshLayout = true;
-            DataTrip.createDraftTripFromRef(DataTrip.getTripRef(args.getString(Constants.EXTRA_TRIP_ID)), task -> {
+            createDraftItemFromRef(getItemRef(args.getString(getExtraItemId())), task -> {
                 if (task.getException() != null) {
                     getMySuperActivity().showToast(task.getException().getMessage());
                     return;
                 }
-                tripRef = task.getResult();
+                itemRef = task.getResult();
                 if (listenerRegistration == null)
-                    listenerRegistration = tripRef.addSnapshotListener(TripDetailFragment.this);
+                    listenerRegistration = itemRef.addSnapshotListener(DetailFragment.this);
             });
             return;
         }
 
-        if (args.containsKey(Constants.EXTRA_TRIP_ID)) {
-            // Click on a trip to see details
+        if (args.containsKey(getExtraItemId())) {
+            // Click on a person to see details
             currStatus = DetailFragmentMode.VIEW;
             needsRefreshLayout = true;
-            tripRef = DataTrip.getTripRef(args.getString(Constants.EXTRA_TRIP_ID));
+            itemRef = getItemRef(args.getString(getExtraItemId()));
         }
     }
+
+    abstract void createDraftItemFromRef(DocumentReference itemDocReference, OnCompleteListener<DocumentReference> listener);
+
+    protected abstract String getExtraItemId();
 
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container,
@@ -93,10 +88,10 @@ public class TripDetailFragment extends MySuperFragment implements EventListener
         switch (currStatus) {
             case EDIT:
             case NEW:
-                root = inflater.inflate(R.layout.fragment_trip_edit, container, false);
+                root = inflater.inflate(getEditLayout(), container, false);
                 break;
             case VIEW:
-                root = inflater.inflate(R.layout.fragment_trip_detail, container, false);
+                root = inflater.inflate(getLayout(), container, false);
                 break;
         }
         if (parent instanceof ViewGroup) {
@@ -110,14 +105,8 @@ public class TripDetailFragment extends MySuperFragment implements EventListener
     @Override
     public void onStart() {
         super.onStart();
-        switch (currStatus) {
-            case NEW:
-            case VIEW:
-            case EDIT:
-                if (listenerRegistration == null && tripRef != null)
-                    listenerRegistration = tripRef.addSnapshotListener(this);
-                break;
-        }
+        if (listenerRegistration == null && itemRef != null)
+            listenerRegistration = itemRef.addSnapshotListener(this);
     }
 
     @Override
@@ -135,58 +124,62 @@ public class TripDetailFragment extends MySuperFragment implements EventListener
         switch (currStatus) {
             case EDIT:
             case NEW:
-                inflater.inflate(R.menu.trip_detail_edit, menu);
+                inflater.inflate(getMenuEdit(), menu);
                 break;
             case VIEW:
-                inflater.inflate(R.menu.trip_detail, menu);
+                inflater.inflate(getMenu(), menu);
                 break;
         }
     }
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        switch (item.getItemId()) {
-            case R.id.clear_trip:
-                cleanData();
-                FragmentManager fragmentManager = getFragmentManager();
-                if (fragmentManager != null)
-                    fragmentManager.popBackStack();
-                break;
-            case R.id.confirm_trip:
-                confirmTrip();
-                return true;
-            case R.id.edit_trip:
-                if (trip.isDraft())
-                    getMySuperActivity().showOkCancelDialog("Confirm",
-                            "Confirm the current modifications before choosing other people",
-                            (dialogInterface, i) -> confirmTrip());
-                else
-                    editTrip();
-                return true;
-            case R.id.choose_person:
-                choosePerson();
-                break;
+        int itemId = item.getItemId();
+        if (itemId == getClearMenuItem()) {
+            cleanData();
+            FragmentManager fragmentManager = getFragmentManager();
+            if (fragmentManager != null)
+                fragmentManager.popBackStack();
+            return true;
+        } else if (itemId == getConfirmMenuItem()) {
+            confirmItem();
+            return true;
+        } else if (itemId == getEditMenuItem()) {
+            if (isItemDraft())
+                getMySuperActivity().showOkCancelDialog("Confirm",
+                        "Confirm the current modifications before choosing other tripsIds",
+                        (dialogInterface, i) -> confirmItem());
+            else
+                editItem();
+            return true;
+        } else if (itemId == getChooseMenuItem()) {
+            chooseItem();
+            return true;
         }
         return super.onOptionsItemSelected(item);
     }
 
-    private void choosePerson() {
+    protected abstract boolean isItemDraft();
+
+    private void chooseItem() {
         Bundle b = new Bundle();
         Bundle bb = new Bundle();
         bb.putBoolean(Constants.EXTRA_CHOOSE, true);
-        bb.putString(Constants.EXTRA_TRIP_ID, trip.getId());
+        bb.putString(getExtraItemId(), getItemId());
         b.putBundle(Constants.EXTRA_BUNDLE_FOR_FRAGMENT, bb);
         b.putBoolean(Constants.EXTRA_ADD_TO_BACKSTACK, true);
-        b.putString(Constants.EXTRA_REPLACE_FRAGMENT, PeopleListFragment.class.getName());
+        b.putString(Constants.EXTRA_REPLACE_FRAGMENT, getListFragmentName());
         mListener.onFragmentInteraction(b);
     }
 
+    protected abstract String getItemId();
+
     @Override
     public boolean allowBackPress() {
-        if (trip != null && trip.isDraft()) {
+        if (isItemSet() && isItemDraft()) {
             getMySuperActivity().showOkCancelDialog("Confirm",
                     "Confirm the current modifications or cancel them",
-                    (dialogInterface, i) -> confirmTrip(),
+                    (dialogInterface, i) -> confirmItem(),
                     null,
                     (dialogInterface, i) -> getFragmentManager().popBackStack());
             return false;
@@ -194,15 +187,16 @@ public class TripDetailFragment extends MySuperFragment implements EventListener
         return super.allowBackPress();
     }
 
-    private void confirmTrip() {
-        // TODO validation
+    protected abstract boolean isItemSet();
+
+    private void confirmItem() {
+        //TODO validation
         View root = getView();
-        if (root != null) {
-            trip.setTitle(((EditText) root.findViewById(R.id.trip_title)).getText().toString());
-            trip.setSubtitle(((EditText) root.findViewById(R.id.trip_subtitle)).getText().toString());
-        }
+        if (root != null)
+            setItemDetails(root);
+
         setRefreshing(true);
-        DataTrip.commitTripBatch(trip, task -> setRefreshing(false));
+        commitItem(task -> setRefreshing(false));
         // needed, otherwise this fragment isn't correctly removed
         FragmentManager fragmentManager = getFragmentManager();
         if (fragmentManager != null) {
@@ -212,21 +206,21 @@ public class TripDetailFragment extends MySuperFragment implements EventListener
 
         Bundle b = new Bundle();
         Bundle bb = new Bundle();
-        bb.putString(Constants.EXTRA_TRIP_ID, trip.getId());
+        bb.putString(getExtraItemId(), getItemId());
         b.putBundle(Constants.EXTRA_BUNDLE_FOR_FRAGMENT, bb);
         b.putBoolean(Constants.EXTRA_ADD_TO_BACKSTACK, true);
-        b.putString(Constants.EXTRA_REPLACE_FRAGMENT, TripDetailFragment.class.getName());
+        b.putString(Constants.EXTRA_REPLACE_FRAGMENT, getDetailFragmentName());
         mListener.onFragmentInteraction(b);
     }
 
-    private void editTrip() {
+    private void editItem() {
         Bundle b = new Bundle();
         Bundle bb = new Bundle();
-        bb.putString(Constants.EXTRA_TRIP_ID, trip.getId());
+        bb.putString(getExtraItemId(), getItemId());
         bb.putBoolean(Constants.EXTRA_EDIT, true);
         b.putBundle(Constants.EXTRA_BUNDLE_FOR_FRAGMENT, bb);
         b.putBoolean(Constants.EXTRA_ADD_TO_BACKSTACK, true);
-        b.putString(Constants.EXTRA_REPLACE_FRAGMENT, TripDetailFragment.class.getName());
+        b.putString(Constants.EXTRA_REPLACE_FRAGMENT, getDetailFragmentName());
         mListener.onFragmentInteraction(b);
     }
 
@@ -242,42 +236,38 @@ public class TripDetailFragment extends MySuperFragment implements EventListener
         }
     }
 
-    private void loadEditLayoutTrip(@Nullable View view) {
+    private void loadEditLayout(@Nullable View view) {
         if (view == null) return;
-        EditText trip_title = view.findViewById(R.id.trip_title);
-        trip_title.setText(trip.getTitle());
-        EditText trip_subtitle = view.findViewById(R.id.trip_subtitle);
-        trip_subtitle.setText(trip.getSubtitle());
+        setEditViewDetails(view);
         Bundle b = new Bundle();
-        b.putString(Constants.EXTRA_TRIP_ID, trip.getId());
+        b.putString(getExtraItemId(), getItemId());
         b.putBoolean(Constants.EXTRA_EDIT, true);
         FragmentManager childFragmentManager = getChildFragmentManager();
-        peopleListFragment = (MySuperFragment) Fragment.instantiate(getContext(), PeopleListFragment.class.getName(), b);
+        listFragment = (ListFragment) Fragment.instantiate(getContext(), getListFragmentName(), b);
         childFragmentManager.beginTransaction().replace(
-                R.id.fragment_people_list,
-                peopleListFragment
+                getListFragmentId(),
+                listFragment
         ).commit();
     }
 
-    private void loadLayoutTrip(@Nullable View view) {
+    protected abstract void setEditViewDetails(View view);
+
+    private void loadLayout(@Nullable View view) {
         if (view == null) return;
-        TextView trip_title = view.findViewById(R.id.trip_title);
-        trip_title.setText(trip.getTitle());
-        TextView trip_subtitle = view.findViewById(R.id.trip_subtitle);
-        trip_subtitle.setText(trip.getSubtitle());
+        setViewDetails(view);
         Bundle b = new Bundle();
-        b.putString(Constants.EXTRA_TRIP_ID, trip.getId());
+        b.putString(getExtraItemId(), getItemId());
         FragmentManager childFragmentManager = getChildFragmentManager();
-        peopleListFragment = (MySuperFragment) Fragment.instantiate(getContext(), PeopleListFragment.class.getName(), b);
+        listFragment = (ListFragment) Fragment.instantiate(getContext(), getListFragmentName(), b);
         childFragmentManager.beginTransaction().replace(
-                R.id.fragment_people_list,
-                peopleListFragment
+                getListFragmentId(),
+                listFragment
         ).commit();
     }
 
     @Override
     public void onRefresh() {
-        peopleListFragment.mAdapter.setQuery(peopleListFragment.mAdapter.mQuery);
+        listFragment.mAdapter.setQuery(listFragment.mAdapter.mQuery);
     }
 
     @Override
@@ -287,8 +277,8 @@ public class TripDetailFragment extends MySuperFragment implements EventListener
     }
 
     private void cleanData() {
-        if (trip != null && trip.isDraft())
-            DataTrip.deleteTripBatch(trip.getId(), this);
+        if (isItemSet() && isItemDraft())
+            deleteItem(this);
     }
 
     @Override
@@ -303,16 +293,17 @@ public class TripDetailFragment extends MySuperFragment implements EventListener
             getMySuperActivity().showToast("Snapshot doesn't exist yet");
             return;
         }
-        trip = documentSnapshot.toObject(Trip.class);
+
+        setItem(documentSnapshot);
         switch (currStatus) {
             case EDIT:
             case NEW:
-                if (!trip.isDraft())
+                if (!isItemDraft())
                     getMySuperActivity().showToast("This should be a draft");
-                loadEditLayoutTrip(getView());
+                loadEditLayout(getView());
                 break;
             case VIEW:
-                loadLayoutTrip(getView());
+                loadLayout(getView());
                 break;
         }
         setRefreshing(false);
@@ -324,4 +315,36 @@ public class TripDetailFragment extends MySuperFragment implements EventListener
             getMySuperActivity().showToast(task.getException().getMessage());
         setRefreshing(false);
     }
+
+    protected abstract int getLayout();
+
+    protected abstract int getEditLayout();
+
+    protected abstract int getMenuEdit();
+
+    protected abstract int getMenu();
+
+    protected abstract int getChooseMenuItem();
+
+    protected abstract int getEditMenuItem();
+
+    protected abstract int getConfirmMenuItem();
+
+    protected abstract int getClearMenuItem();
+
+    protected abstract String getListFragmentName();
+
+    protected abstract void setItemDetails(View view);
+
+    protected abstract void commitItem(OnCompleteListener<Void> listener);
+
+    protected abstract String getDetailFragmentName();
+
+    protected abstract void setViewDetails(@NonNull View view);
+
+    protected abstract int getListFragmentId();
+
+    protected abstract void deleteItem(OnCompleteListener<Void> listener);
+
+    protected abstract void setItem(DocumentSnapshot documentSnapshot);
 }
