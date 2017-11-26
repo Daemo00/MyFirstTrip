@@ -1,0 +1,21 @@
+<android.support.v7.widget.LinearLayoutCompat xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    tools:context="com.daemo.myfirsttrip.fragments.CostDetailFragment">
+
+    <include layout="@layout/cost_card_view" />
+
+    <android.support.v7.widget.AppCompatTextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/costs" />
+
+    <FrameLayout
+        android:id="@+id/fragment_costs_list"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        tools:layout="@layout/fragment_costs_list" />
+
+</android.support.v7.widget.LinearLayoutCompat>

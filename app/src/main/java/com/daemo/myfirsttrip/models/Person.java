@@ -8,12 +8,13 @@ import java.util.Map;
 
 @IgnoreExtraProperties
 public class Person {
-    public String id;
-    public String name;
-    public String surname;
-    public Map<String, Integer> tripsIds = new HashMap<>();
-    private String oldId;
+    private String id;
+    private String oldId = null;
     private boolean isDraft = false;
+    private String name;
+    private String surname;
+    private Map<String, Integer> tripsIds = new HashMap<>();
+    private Map<String, Integer> costsIds = new HashMap<>();
 
     public Person() {
     }
@@ -70,5 +71,13 @@ public class Person {
 
     public void setOldId(String oldId) {
         this.oldId = oldId;
+    }
+
+    public Map<String, Integer> getCostsIds() {
+        return costsIds;
+    }
+
+    public void setCostsIds(Map<String, Integer> costsIds) {
+        this.costsIds = costsIds;
     }
 }

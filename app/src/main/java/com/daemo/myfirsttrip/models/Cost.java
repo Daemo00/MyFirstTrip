@@ -7,23 +7,23 @@ import java.util.HashMap;
 import java.util.Map;
 
 @IgnoreExtraProperties
-public class Trip {
+public class Cost {
     private String id;
     private String oldId = null;
     private boolean isDraft = false;
-    private String title;
-    private String subtitle;
+    private Float quantity;
+    private String motivation;
     private Map<String, Integer> peopleIds = new HashMap<>();
-    private Map<String, Integer> costsIds = new HashMap<>();
+    private Map<String, Integer> tripsIds = new HashMap<>();
 
-    public Trip() {
+    public Cost() {
 
     }
 
-    public Trip(String id) {
+    public Cost(String id) {
         this.id = id;
-        this.title = null;
-        this.subtitle = null;
+        this.quantity = 1.0f;
+        this.motivation = null;
     }
 
     public String getId() {
@@ -34,20 +34,20 @@ public class Trip {
         this.id = id;
     }
 
-    public String getTitle() {
-        return title;
+    public Float getQuantity() {
+        return quantity;
     }
 
-    public void setTitle(String title) {
-        this.title = title;
+    public void setQuantity(Float quantity) {
+        this.quantity = quantity;
     }
 
-    public String getSubtitle() {
-        return subtitle;
+    public String getMotivation() {
+        return motivation;
     }
 
-    public void setSubtitle(String subtitle) {
-        this.subtitle = subtitle;
+    public void setMotivation(String motivation) {
+        this.motivation = motivation;
     }
 
     public boolean isDraft() {
@@ -74,11 +74,11 @@ public class Trip {
         this.peopleIds = peopleIds;
     }
 
-    public Map<String, Integer> getCostsIds() {
-        return costsIds;
+    public Map<String, Integer> getTripsIds() {
+        return tripsIds;
     }
 
-    public void setCostsIds(Map<String, Integer> costsIds) {
-        this.costsIds = costsIds;
+    public void setTripsIds(Map<String, Integer> tripsIds) {
+        this.tripsIds = tripsIds;
     }
 }

@@ -13,10 +13,10 @@
     <string name="profile_image_content_description">Profile image content description</string>
     <string name="profile_email">Profile email</string>
     <string name="profile_name">Profile name</string>
-    <string name="trip_title">Trip title</string>
+    <string name="trip_title">Trip quantity</string>
     <string name="trip_action1">Action 1</string>
     <string name="trip_action2">Action 2</string>
-    <string name="trip_subtitle">Trip subtitle</string>
+    <string name="trip_subtitle">Trip motivation</string>
     <string name="people">People</string>
     <string name="person_title">Person name</string>
     <string name="person_subtitle">Person surname</string>
@@ -33,4 +33,13 @@
     <string name="choose_person">Choose person</string>
     <string name="clear_trip">Clear trip</string>
     <string name="clear_person">Clear person</string>
+    <string name="add_cost">Add cost</string>
+    <string name="confirm_cost">Confirm cost</string>
+    <string name="edit_cost">Edit cost</string>
+    <string name="clear_cost">Clear cost</string>
+    <string name="choose_cost">Choose cost</string>
+    <string name="nav_costs_title">Costs</string>
+    <string name="cost_quantity">1</string>
+    <string name="cost_motivation">Cost motivation</string>
+    <string name="costs">Costs</string>
 </resources>

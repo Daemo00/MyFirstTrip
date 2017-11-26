@@ -2,14 +2,14 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto">
     <item
-        android:id="@+id/clear_person"
+        android:id="@+id/clear_cost"
         android:icon="@drawable/ic_clear_black_24dp"
-        android:title="@string/clear_person"
+        android:title="@string/clear_cost"
         app:showAsAction="ifRoom" />
     <item
-        android:id="@+id/confirm_person"
+        android:id="@+id/confirm_cost"
         android:icon="@drawable/ic_done_black_24dp"
-        android:title="@string/confirm_person"
+        android:title="@string/confirm_cost"
         app:showAsAction="ifRoom" />
     <item
         android:id="@+id/choose_trip"
@@ -17,8 +17,8 @@
         android:title="@string/choose_trip"
         app:showAsAction="ifRoom" />
     <item
-        android:id="@+id/choose_cost"
-        android:icon="@drawable/ic_attach_money_black_24dp"
-        android:title="@string/choose_cost"
+        android:id="@+id/choose_person"
+        android:icon="@drawable/ic_contacts_black_24dp"
+        android:title="@string/choose_person"
         app:showAsAction="ifRoom" />
 </menu>

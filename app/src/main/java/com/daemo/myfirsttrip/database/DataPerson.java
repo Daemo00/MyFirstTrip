@@ -92,7 +92,7 @@ public class DataPerson {
     public static void updatePersonBatch(Person person, Set<String> unselected_ids, OnCompleteListener<Void> onCompleteListener) {
         WriteBatch batch = FirebaseFirestore.getInstance().batch();
         DocumentReference personDocReference = FirebaseFirestore.getInstance()
-                .collection(Constants.PEOPLE_COLLECTION).document(person.id);
+                .collection(Constants.PEOPLE_COLLECTION).document(person.getId());
         batch.set(personDocReference, person);
 
         // Remove selection from deselected people
@@ -104,7 +104,7 @@ public class DataPerson {
 
         // Update all its links in other trips it references!
         List<DocumentReference> tripDocReferences = new ArrayList<>();
-        for (Map.Entry<String, Integer> tripEntry : person.tripsIds.entrySet()) {
+        for (Map.Entry<String, Integer> tripEntry : person.getTripsIds().entrySet()) {
             DocumentReference documentReference = personDocReference.getFirestore()
                     .collection(Constants.TRIPS_COLLECTION)
                     .document(tripEntry.getKey());
