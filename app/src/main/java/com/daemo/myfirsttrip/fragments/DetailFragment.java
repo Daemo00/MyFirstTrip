@@ -25,7 +25,8 @@ public abstract class DetailFragment extends MySuperFragment implements EventLis
     private DocumentReference itemRef;
     private ListenerRegistration listenerRegistration;
     private DetailFragmentMode currStatus;
-    private ListFragment listFragment;
+    private ListFragment listFragment1;
+    private ListFragment listFragment2;
 
 
     abstract DocumentReference getItemRef(String itemId);
@@ -50,9 +51,10 @@ public abstract class DetailFragment extends MySuperFragment implements EventLis
             return;
         }
 
-        if (args.containsKey(getExtraItemId()) &&
-                args.containsKey(Constants.EXTRA_EDIT) && args.getBoolean(Constants.EXTRA_EDIT)) {
-            // Click on a person for edit
+        if (args.containsKey(getExtraItemId())
+                && args.containsKey(Constants.EXTRA_EDIT)
+                && args.getBoolean(Constants.EXTRA_EDIT)) {
+            // Click on edit from the item
             currStatus = DetailFragmentMode.EDIT;
             needsRefreshLayout = true;
             createDraftItemFromRef(getItemRef(args.getString(getExtraItemId())), task -> {
@@ -68,7 +70,7 @@ public abstract class DetailFragment extends MySuperFragment implements EventLis
         }
 
         if (args.containsKey(getExtraItemId())) {
-            // Click on a person to see details
+            // Simply click on an item to see details
             currStatus = DetailFragmentMode.VIEW;
             needsRefreshLayout = true;
             itemRef = getItemRef(args.getString(getExtraItemId()));
@@ -152,25 +154,43 @@ public abstract class DetailFragment extends MySuperFragment implements EventLis
             else
                 editItem();
             return true;
-        } else if (itemId == getChooseMenuItem()) {
-            chooseItem();
+        } else if (itemId == getChooseMenuItem1()) {
+            chooseItem1();
+            return true;
+        } else if (itemId == getChooseMenuItem2()) {
+            chooseItem2();
             return true;
         }
         return super.onOptionsItemSelected(item);
     }
 
+    protected abstract int getChooseMenuItem2();
+
     protected abstract boolean isItemDraft();
 
-    private void chooseItem() {
+    private void chooseItem1() {
         Bundle b = new Bundle();
         Bundle bb = new Bundle();
         bb.putBoolean(Constants.EXTRA_CHOOSE, true);
         bb.putString(getExtraItemId(), getItemId());
         b.putBundle(Constants.EXTRA_BUNDLE_FOR_FRAGMENT, bb);
         b.putBoolean(Constants.EXTRA_ADD_TO_BACKSTACK, true);
-        b.putString(Constants.EXTRA_REPLACE_FRAGMENT, getListFragmentName());
+        b.putString(Constants.EXTRA_REPLACE_FRAGMENT, getListFragmentName1());
         mListener.onFragmentInteraction(b);
     }
+
+    private void chooseItem2() {
+        Bundle b = new Bundle();
+        Bundle bb = new Bundle();
+        bb.putBoolean(Constants.EXTRA_CHOOSE, true);
+        bb.putString(getExtraItemId(), getItemId());
+        b.putBundle(Constants.EXTRA_BUNDLE_FOR_FRAGMENT, bb);
+        b.putBoolean(Constants.EXTRA_ADD_TO_BACKSTACK, true);
+        b.putString(Constants.EXTRA_REPLACE_FRAGMENT, getListFragmentName2());
+        mListener.onFragmentInteraction(b);
+    }
+
+    protected abstract String getListFragmentName2();
 
     protected abstract String getItemId();
 
@@ -242,11 +262,20 @@ public abstract class DetailFragment extends MySuperFragment implements EventLis
         Bundle b = new Bundle();
         b.putString(getExtraItemId(), getItemId());
         b.putBoolean(Constants.EXTRA_EDIT, true);
+        instantiateListFragments(b);
+    }
+
+    private void instantiateListFragments(Bundle b) {
         FragmentManager childFragmentManager = getChildFragmentManager();
-        listFragment = (ListFragment) Fragment.instantiate(getContext(), getListFragmentName(), b);
+        listFragment1 = (ListFragment) Fragment.instantiate(getContext(), getListFragmentName1(), b);
         childFragmentManager.beginTransaction().replace(
-                getListFragmentId(),
-                listFragment
+                getListFragment1Id(),
+                listFragment1
+        ).commit();
+        listFragment2 = (ListFragment) Fragment.instantiate(getContext(), getListFragmentName2(), b);
+        childFragmentManager.beginTransaction().replace(
+                getListFragment2Id(),
+                listFragment2
         ).commit();
     }
 
@@ -257,17 +286,13 @@ public abstract class DetailFragment extends MySuperFragment implements EventLis
         setViewDetails(view);
         Bundle b = new Bundle();
         b.putString(getExtraItemId(), getItemId());
-        FragmentManager childFragmentManager = getChildFragmentManager();
-        listFragment = (ListFragment) Fragment.instantiate(getContext(), getListFragmentName(), b);
-        childFragmentManager.beginTransaction().replace(
-                getListFragmentId(),
-                listFragment
-        ).commit();
+        instantiateListFragments(b);
     }
 
     @Override
     public void onRefresh() {
-        listFragment.mAdapter.setQuery(listFragment.mAdapter.mQuery);
+        listFragment1.mAdapter.setQuery(listFragment1.mAdapter.mQuery);
+        listFragment2.mAdapter.setQuery(listFragment2.mAdapter.mQuery);
     }
 
     @Override
@@ -324,7 +349,7 @@ public abstract class DetailFragment extends MySuperFragment implements EventLis
 
     protected abstract int getMenu();
 
-    protected abstract int getChooseMenuItem();
+    protected abstract int getChooseMenuItem1();
 
     protected abstract int getEditMenuItem();
 
@@ -332,7 +357,7 @@ public abstract class DetailFragment extends MySuperFragment implements EventLis
 
     protected abstract int getClearMenuItem();
 
-    protected abstract String getListFragmentName();
+    protected abstract String getListFragmentName1();
 
     protected abstract void setItemDetails(View view);
 
@@ -342,7 +367,9 @@ public abstract class DetailFragment extends MySuperFragment implements EventLis
 
     protected abstract void setViewDetails(@NonNull View view);
 
-    protected abstract int getListFragmentId();
+    protected abstract int getListFragment1Id();
+
+    protected abstract int getListFragment2Id();
 
     protected abstract void deleteItem(OnCompleteListener<Void> listener);
 

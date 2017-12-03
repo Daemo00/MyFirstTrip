@@ -85,11 +85,6 @@ public class CostDetailFragment extends DetailFragment {
     }
 
     @Override
-    protected int getChooseMenuItem() {
-        return R.id.choose_person;
-    }
-
-    @Override
     protected int getEditMenuItem() {
         return R.id.edit_cost;
     }
@@ -102,11 +97,6 @@ public class CostDetailFragment extends DetailFragment {
     @Override
     protected int getClearMenuItem() {
         return R.id.clear_cost;
-    }
-
-    @Override
-    protected String getListFragmentName() {
-        return PeopleListFragment.class.getName();
     }
 
     @Override
@@ -138,8 +128,33 @@ public class CostDetailFragment extends DetailFragment {
     }
 
     @Override
-    protected int getListFragmentId() {
+    protected int getListFragment1Id() {
         return R.id.fragment_people_list;
+    }
+
+    @Override
+    protected int getListFragment2Id() {
+        return R.id.fragment_trips_list;
+    }
+
+    @Override
+    protected int getChooseMenuItem1() {
+        return R.id.choose_person;
+    }
+
+    @Override
+    protected int getChooseMenuItem2() {
+        return R.id.choose_trip;
+    }
+
+    @Override
+    protected String getListFragmentName1() {
+        return PeopleListFragment.class.getName();
+    }
+
+    @Override
+    protected String getListFragmentName2() {
+        return TripsListFragment.class.getName();
     }
 
     @Override

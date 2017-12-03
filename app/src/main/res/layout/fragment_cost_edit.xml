@@ -7,15 +7,36 @@
 
     <include layout="@layout/cost_card_view_edit" />
 
-    <android.support.v7.widget.AppCompatTextView
+    <TabHost
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="@string/costs" />
+        android:layout_height="match_parent">
 
-    <FrameLayout
-        android:id="@+id/fragment_costs_list"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        tools:layout="@layout/fragment_costs_list" />
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="vertical">
 
+            <TabWidget
+                android:id="@android:id/tabs"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content" />
+
+            <FrameLayout
+                android:id="@android:id/tabcontent"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent">
+
+                <FrameLayout
+                    android:id="@+id/fragment_people_list"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent" />
+
+                <FrameLayout
+                    android:id="@+id/fragment_trips_list"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent" />
+
+            </FrameLayout>
+        </LinearLayout>
+    </TabHost>
 </android.support.v7.widget.LinearLayoutCompat>

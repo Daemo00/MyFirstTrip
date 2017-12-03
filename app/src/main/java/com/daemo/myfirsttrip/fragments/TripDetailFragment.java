@@ -2,7 +2,6 @@ package com.daemo.myfirsttrip.fragments;
 
 
 import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.TextView;
@@ -84,11 +83,6 @@ public class TripDetailFragment extends DetailFragment{
     }
 
     @Override
-    protected int getChooseMenuItem() {
-        return R.id.choose_person;
-    }
-
-    @Override
     protected int getEditMenuItem() {
         return R.id.edit_trip;
     }
@@ -101,11 +95,6 @@ public class TripDetailFragment extends DetailFragment{
     @Override
     protected int getClearMenuItem() {
         return R.id.clear_trip;
-    }
-
-    @Override
-    protected String getListFragmentName() {
-        return PeopleListFragment.class.getName();
     }
 
     @Override
@@ -137,8 +126,13 @@ public class TripDetailFragment extends DetailFragment{
     }
 
     @Override
-    protected int getListFragmentId() {
+    protected int getListFragment1Id() {
         return R.id.fragment_people_list;
+    }
+
+    @Override
+    protected int getListFragment2Id() {
+        return R.id.fragment_trips_list;
     }
 
     @Override
@@ -149,5 +143,25 @@ public class TripDetailFragment extends DetailFragment{
     @Override
     protected void setItem(DocumentSnapshot documentSnapshot) {
         trip = documentSnapshot.toObject(Trip.class);
+    }
+
+    @Override
+    protected int getChooseMenuItem1() {
+        return R.id.choose_cost;
+    }
+
+    @Override
+    protected int getChooseMenuItem2() {
+        return R.id.choose_person;
+    }
+
+    @Override
+    protected String getListFragmentName1() {
+        return CostsListFragment.class.getName();
+    }
+
+    @Override
+    protected String getListFragmentName2() {
+        return PeopleListFragment.class.getName();
     }
 }

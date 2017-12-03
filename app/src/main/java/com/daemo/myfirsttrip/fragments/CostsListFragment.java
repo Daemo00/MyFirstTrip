@@ -1,43 +1,23 @@
 package com.daemo.myfirsttrip.fragments;
 
-import android.os.Bundle;
 import android.support.annotation.NonNull;
 
 import com.daemo.myfirsttrip.R;
 import com.daemo.myfirsttrip.adapter.CostsAdapter;
 import com.daemo.myfirsttrip.adapter.FirestoreAdapter;
 import com.daemo.myfirsttrip.common.Constants;
-import com.daemo.myfirsttrip.database.DataPerson;
-import com.daemo.myfirsttrip.models.Person;
-import com.google.android.gms.tasks.OnCompleteListener;
-import com.google.firebase.firestore.DocumentReference;
-import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.Query;
 
-import java.util.Locale;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
 
 public class CostsListFragment extends ListFragment {
 
-    /**
-     * When this fragment is summoned to add relatedIds to a person, this is that person
-     */
-    Person person;
 
     public CostsListFragment() {
         // Required empty public constructor
-    }
-
-    @Override
-    public String getExtraItemId() {
-        return Constants.EXTRA_PERSON_ID;
-    }
-
-    @Override
-    public DocumentReference getDocReference(Bundle args) {
-        return DataPerson.getPersonRef(args.getString(getExtraItemId()));
     }
 
     @Override
@@ -64,38 +44,20 @@ public class CostsListFragment extends ListFragment {
     }
 
     @Override
-    protected boolean isItemSet() {
-        return person != null;
-    }
-
-    @Override
     protected Set<String> getItemRelatedIds() {
-        return person.getCostsIds().keySet();
+        if (person != null)
+            return person.getCostsIds().keySet();
+        else if (trip != null)
+            return trip.getCostsIds().keySet();
+        return new HashSet<>();
     }
 
     @Override
     protected void setItemRelatedIds(Map<String, Integer> selectedIds) {
-        person.setCostsIds(selectedIds);
-    }
-
-    @Override
-    protected void updateItem(OnCompleteListener<Void> listener) {
-        DataPerson.updatePersonBatch(person, mAdapter.unselected_ids, listener);
-    }
-
-    @Override
-    protected void setItem(DocumentSnapshot documentSnapshot) {
-        person = documentSnapshot.toObject(Person.class);
-    }
-
-    @Override
-    boolean getIsDraft() {
-        return person.isDraft();
-    }
-
-    @Override
-    protected String getNestedFilter() {
-        return String.format(Locale.getDefault(), "peopleIds.%s", person.getId());
+        if (person != null)
+            person.setCostsIds(selectedIds);
+        else if (trip != null)
+            trip.setCostsIds(selectedIds);
     }
 
     @Override

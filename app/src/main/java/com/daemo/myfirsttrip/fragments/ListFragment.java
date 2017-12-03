@@ -19,6 +19,12 @@ import com.daemo.myfirsttrip.R;
 import com.daemo.myfirsttrip.adapter.FirestoreAdapter;
 import com.daemo.myfirsttrip.common.Constants;
 import com.daemo.myfirsttrip.common.SimpleItemTouchHelperCallback;
+import com.daemo.myfirsttrip.database.DataCost;
+import com.daemo.myfirsttrip.database.DataPerson;
+import com.daemo.myfirsttrip.database.DataTrip;
+import com.daemo.myfirsttrip.models.Cost;
+import com.daemo.myfirsttrip.models.Person;
+import com.daemo.myfirsttrip.models.Trip;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
@@ -30,6 +36,7 @@ import com.google.firebase.firestore.Query;
 
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 
@@ -37,6 +44,12 @@ import java.util.Set;
 public abstract class ListFragment extends MySuperFragment implements EventListener<DocumentSnapshot> {
 
     public FirestoreAdapter mAdapter;
+    /**
+     * When this fragment is summoned to add relatedIds to a person/trip, this is that person/trip
+     */
+    Cost cost;
+    Person person;
+    Trip trip;
     private DocumentReference docReference;
     private RecyclerView mRecyclerView;
     private ListenerRegistration listenerRegistration;
@@ -49,7 +62,7 @@ public abstract class ListFragment extends MySuperFragment implements EventListe
         if (args == null || args.isEmpty()) {
             currStatus = ListFragmentMode.ALL;
             needsRefreshLayout = true;
-        } else if (args.containsKey(getExtraItemId())) {
+        } else if (hasExtraItemId(args)) {
             docReference = getDocReference(args);
             currStatus = ListFragmentMode.NESTED;
             needsRefreshLayout = false;
@@ -61,6 +74,12 @@ public abstract class ListFragment extends MySuperFragment implements EventListe
                 needsRefreshLayout = true;
             }
         }
+    }
+
+    protected boolean hasExtraItemId(Bundle args) {
+        return args.containsKey(Constants.EXTRA_COST_ID)
+                || args.containsKey(Constants.EXTRA_PERSON_ID)
+                || args.containsKey(Constants.EXTRA_TRIP_ID);
     }
 
     @Override
@@ -249,13 +268,49 @@ public abstract class ListFragment extends MySuperFragment implements EventListe
 
     protected abstract String getDetailFragmentName();
 
-    protected abstract void updateItem(OnCompleteListener<Void> listener);
+    protected void updateItem(OnCompleteListener<Void> listener) {
+        if (cost != null)
+            DataCost.updateCostBatch(cost, mAdapter.unselected_ids, listener);
+        else if (person != null)
+            DataPerson.updatePersonBatch(person, mAdapter.unselected_ids, listener);
+        else if (trip != null)
+            DataTrip.updateTripBatch(trip, mAdapter.unselected_ids, listener);
+    }
 
-    protected abstract void setItem(DocumentSnapshot documentSnapshot);
+    protected void setItem(DocumentSnapshot documentSnapshot) {
+        String collection = documentSnapshot.getReference().getParent().getId();
+        switch (collection) {
+            case Constants.COSTS_COLLECTION:
+                cost = documentSnapshot.toObject(Cost.class);
+                break;
+            case Constants.PEOPLE_COLLECTION:
+                person = documentSnapshot.toObject(Person.class);
+                break;
+            case Constants.TRIPS_COLLECTION:
+                trip = documentSnapshot.toObject(Trip.class);
+                break;
+        }
+    }
 
-    protected abstract String getExtraItemId();
+    public String getExtraItemId(Bundle args) {
+        if (args.containsKey(Constants.EXTRA_COST_ID))
+            return args.getString(Constants.EXTRA_COST_ID);
+        else if (args.containsKey(Constants.EXTRA_PERSON_ID))
+            return args.getString(Constants.EXTRA_PERSON_ID);
+        else if (args.containsKey(Constants.EXTRA_TRIP_ID))
+            return args.getString(Constants.EXTRA_TRIP_ID);
+        return null;
+    }
 
-    protected abstract DocumentReference getDocReference(Bundle args);
+    public DocumentReference getDocReference(Bundle args) {
+        if (cost != null)
+            return DataCost.getCostRef(getExtraItemId(args));
+        else if (person != null)
+            return DataPerson.getPersonRef(getExtraItemId(args));
+        else if (trip != null)
+            return DataTrip.getTripRef(getExtraItemId(args));
+        return null;
+    }
 
     protected abstract int getLayout();
 
@@ -266,11 +321,31 @@ public abstract class ListFragment extends MySuperFragment implements EventListe
     @NonNull
     protected abstract FirestoreAdapter generateAdapter(Query query, Set<String> selected_ids);
 
-    protected abstract boolean isItemSet();
+    protected boolean isItemSet() {
+        return cost != null
+                || person != null
+                || trip != null;
+    }
 
-    abstract boolean getIsDraft();
+    boolean getIsDraft() {
+        if (cost != null)
+            return cost.isDraft();
+        else if (person != null)
+            return person.isDraft();
+        else if (trip != null)
+            return trip.isDraft();
+        return false;
+    }
 
-    protected abstract String getNestedFilter();
+    protected String getNestedFilter() {
+        if (cost != null)
+            return String.format(Locale.getDefault(), "costsIds.%s", cost.getId());
+        else if (person != null)
+            return String.format(Locale.getDefault(), "peopleIds.%s", person.getId());
+        else if (trip != null)
+            return String.format(Locale.getDefault(), "tripsIds.%s", trip.getId());
+        return null;
+    }
 
     protected abstract int getMenu_choose();
 

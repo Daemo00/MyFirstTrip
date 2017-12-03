@@ -2,8 +2,6 @@ package com.daemo.myfirsttrip.fragments;
 
 
 import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
-import android.support.v7.widget.AppCompatTextView;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.TextView;
@@ -85,8 +83,28 @@ public class PersonDetailFragment extends DetailFragment {
     }
 
     @Override
-    protected int getChooseMenuItem() {
+    protected int getChooseMenuItem1() {
+        return R.id.choose_cost;
+    }
+
+    @Override
+    protected int getChooseMenuItem2() {
         return R.id.choose_trip;
+    }
+
+    @Override
+    protected String getListFragmentName1() {
+        return CostsListFragment.class.getName();
+    }
+
+    @Override
+    protected String getListFragmentName2() {
+        return TripsListFragment.class.getName();
+    }
+
+    @Override
+    protected String getDetailFragmentName() {
+        return PersonDetailFragment.class.getName();
     }
 
     @Override
@@ -105,11 +123,6 @@ public class PersonDetailFragment extends DetailFragment {
     }
 
     @Override
-    protected String getListFragmentName() {
-        return TripsListFragment.class.getName();
-    }
-
-    @Override
     protected void setItemDetails(View view) {
         TextView personName = view.findViewById(R.id.person_name);
         TextView personSurname = view.findViewById(R.id.person_surname);
@@ -123,11 +136,6 @@ public class PersonDetailFragment extends DetailFragment {
     }
 
     @Override
-    protected String getDetailFragmentName() {
-        return PersonDetailFragment.class.getName();
-    }
-
-    @Override
     protected void setViewDetails(@NonNull View view) {
         TextView personName = view.findViewById(R.id.person_name);
         TextView personSurname = view.findViewById(R.id.person_surname);
@@ -136,7 +144,12 @@ public class PersonDetailFragment extends DetailFragment {
     }
 
     @Override
-    protected int getListFragmentId() {
+    protected int getListFragment1Id() {
+        return R.id.fragment_costs_list;
+    }
+
+    @Override
+    protected int getListFragment2Id() {
         return R.id.fragment_trips_list;
     }
 

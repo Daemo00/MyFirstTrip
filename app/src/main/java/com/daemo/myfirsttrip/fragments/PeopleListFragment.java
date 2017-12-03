@@ -1,20 +1,16 @@
 package com.daemo.myfirsttrip.fragments;
 
-import android.os.Bundle;
 import android.support.annotation.NonNull;
 
 import com.daemo.myfirsttrip.R;
 import com.daemo.myfirsttrip.adapter.FirestoreAdapter;
 import com.daemo.myfirsttrip.adapter.PeopleAdapter;
 import com.daemo.myfirsttrip.common.Constants;
-import com.daemo.myfirsttrip.database.DataTrip;
+import com.daemo.myfirsttrip.models.Cost;
 import com.daemo.myfirsttrip.models.Trip;
-import com.google.android.gms.tasks.OnCompleteListener;
-import com.google.firebase.firestore.DocumentReference;
-import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.Query;
 
-import java.util.Locale;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
@@ -24,20 +20,11 @@ public class PeopleListFragment extends ListFragment {
     /**
      * When this fragment is summoned to add relatedIds to a trip, this is that trip
      */
+    Cost cost;
     Trip trip;
 
     public PeopleListFragment() {
         // Required empty public constructor
-    }
-
-    @Override
-    public String getExtraItemId() {
-        return Constants.EXTRA_TRIP_ID;
-    }
-
-    @Override
-    public DocumentReference getDocReference(Bundle args) {
-        return DataTrip.getTripRef(args.getString(getExtraItemId()));
     }
 
     @Override
@@ -65,37 +52,19 @@ public class PeopleListFragment extends ListFragment {
 
     @Override
     protected Set<String> getItemRelatedIds() {
-        return trip.getPeopleIds().keySet();
+        if (cost != null)
+            return cost.getPeopleIds().keySet();
+        else if (trip != null)
+            return trip.getPeopleIds().keySet();
+        return new HashSet<>();
     }
 
     @Override
     protected void setItemRelatedIds(Map<String, Integer> selectedIds) {
-        trip.setPeopleIds(selectedIds);
-    }
-
-    @Override
-    protected void updateItem(OnCompleteListener<Void> listener) {
-        DataTrip.updateTripBatch(trip, mAdapter.unselected_ids, listener);
-    }
-
-    @Override
-    protected void setItem(DocumentSnapshot documentSnapshot) {
-        trip = documentSnapshot.toObject(Trip.class);
-    }
-
-    @Override
-    protected boolean isItemSet() {
-        return trip != null;
-    }
-
-    @Override
-    boolean getIsDraft() {
-        return trip.isDraft();
-    }
-
-    @Override
-    protected String getNestedFilter() {
-        return String.format(Locale.getDefault(), "tripsIds.%s", trip.getId());
+        if (cost != null)
+            cost.setPeopleIds(selectedIds);
+        else if (trip != null)
+            trip.setPeopleIds(selectedIds);
     }
 
     @Override

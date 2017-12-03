@@ -10,6 +10,10 @@
         android:icon="@drawable/ic_contacts_black_24dp"
         android:title="@string/nav_people_title" />
     <item
+        android:id="@+id/nav_costs"
+        android:icon="@drawable/ic_attach_money_black_24dp"
+        android:title="@string/nav_costs_title" />
+    <item
         android:id="@+id/nav_import"
         android:icon="@drawable/ic_menu_camera"
         android:title="@string/nav_import_title" />
