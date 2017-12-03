@@ -26,7 +26,7 @@ public class CostsAdapter extends FirestoreAdapter<CostsAdapter.ViewHolder> impl
 
     // Provide a suitable constructor (depends on the kind of dataset)
     public CostsAdapter(MySuperFragment fragment, Query mQuery, Set<String> selected_ids) {
-        super(fragment, mQuery, selected_ids);
+        super(fragment, mQuery, selected_ids, Constants.COSTS_COLLECTION);
     }
 
     // Create new views (invoked by the layout manager)

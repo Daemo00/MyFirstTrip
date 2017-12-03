@@ -25,7 +25,7 @@ public class PeopleAdapter extends FirestoreAdapter<PeopleAdapter.ViewHolder> im
 
     // Provide a suitable constructor (depends on the kind of dataset)
     public PeopleAdapter(MySuperFragment fragment, Query mQuery, Set<String> selected_ids) {
-        super(fragment, mQuery, selected_ids);
+        super(fragment, mQuery, selected_ids, Constants.PEOPLE_COLLECTION);
     }
 
     // Create new views (invoked by the layout manager)

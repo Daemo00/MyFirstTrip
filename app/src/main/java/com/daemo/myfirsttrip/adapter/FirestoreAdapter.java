@@ -34,6 +34,7 @@ public abstract class FirestoreAdapter<VH extends RecyclerView.ViewHolder>
         implements EventListener<QuerySnapshot>, ItemTouchHelperAdapter {
     private static final String TAG = Utils.getTag(FirestoreAdapter.class);
     public final Set<String> unselected_ids = new HashSet<>();
+    public final String collection;
     final MySuperFragment fragment;
     final Set<Integer> selected_positions = new HashSet<>();
     private final ArrayList<DocumentSnapshot> mSnapshots = new ArrayList<>();
@@ -44,11 +45,12 @@ public abstract class FirestoreAdapter<VH extends RecyclerView.ViewHolder>
     MyRefreshing myRefreshing;
     private ListenerRegistration mRegistration;
 
-    FirestoreAdapter(MySuperFragment fragment, Query query, Set<String> selected_ids) {
+    FirestoreAdapter(MySuperFragment fragment, Query query, Set<String> selected_ids, String collection) {
         this.fragment = fragment;
         this.myRefreshing = fragment;
         this.mQuery = query;
         this.selected_ids = selected_ids;
+        this.collection = collection;
     }
 
     @Override

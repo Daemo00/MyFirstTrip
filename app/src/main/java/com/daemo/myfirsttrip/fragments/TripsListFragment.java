@@ -1,9 +1,6 @@
 package com.daemo.myfirsttrip.fragments;
 
-import android.support.annotation.NonNull;
-
 import com.daemo.myfirsttrip.R;
-import com.daemo.myfirsttrip.adapter.FirestoreAdapter;
 import com.daemo.myfirsttrip.adapter.TripsAdapter;
 import com.daemo.myfirsttrip.common.Constants;
 import com.google.firebase.firestore.Query;
@@ -36,11 +33,9 @@ public class TripsListFragment extends ListFragment {
     }
 
     @Override
-    @NonNull
-    protected FirestoreAdapter generateAdapter(Query query, Set<String> selected_ids) {
+    protected void generateAdapter(Query query, Set<String> selected_ids) {
         if (mAdapter == null)
             mAdapter = new TripsAdapter(this, query, selected_ids);
-        return mAdapter;
     }
 
     @Override

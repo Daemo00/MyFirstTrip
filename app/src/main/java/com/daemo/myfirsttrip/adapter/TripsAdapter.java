@@ -25,7 +25,7 @@ public class TripsAdapter extends FirestoreAdapter<TripsAdapter.ViewHolder> impl
 
     // Provide a suitable constructor (depends on the kind of dataset)
     public TripsAdapter(MySuperFragment fragment, Query mQuery, Set<String> selected_ids) {
-        super(fragment, mQuery, selected_ids);
+        super(fragment, mQuery, selected_ids, Constants.TRIPS_COLLECTION);
     }
 
     // Create new views (invoked by the layout manager)

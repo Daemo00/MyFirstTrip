@@ -34,8 +34,10 @@ import com.google.firebase.firestore.FirebaseFirestoreException;
 import com.google.firebase.firestore.ListenerRegistration;
 import com.google.firebase.firestore.Query;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
@@ -164,7 +166,7 @@ public abstract class ListFragment extends MySuperFragment implements EventListe
                     query = mFirestore.collection(getCollection())
                             .limit(Constants.QUERY_LIMIT);
                     selected_ids.addAll(getItemRelatedIds());
-                    mAdapter = generateAdapter(query, selected_ids);
+                    generateAdapter(query, selected_ids);
                 }
                 break;
             case NESTED:
@@ -174,7 +176,7 @@ public abstract class ListFragment extends MySuperFragment implements EventListe
                     query = mFirestore.collection(getCollection())
                             .whereEqualTo(getNestedFilter(), 1)
                             .limit(Constants.QUERY_LIMIT);
-                    mAdapter = generateAdapter(query, selected_ids);
+                    generateAdapter(query, selected_ids);
                     mAdapter.setMyRefreshing((MyRefreshing) getParentFragment());
                 }
                 break;
@@ -182,7 +184,7 @@ public abstract class ListFragment extends MySuperFragment implements EventListe
                 // Get all the items!
                 query = mFirestore.collection(getCollection())
                         .limit(Constants.QUERY_LIMIT);
-                mAdapter = generateAdapter(query, selected_ids);
+                generateAdapter(query, selected_ids);
                 // Allow edit on the list only if we are in the main list
                 ItemTouchHelper.Callback callback = new SimpleItemTouchHelperCallback(mAdapter);
                 ItemTouchHelper touchHelper = new ItemTouchHelper(callback);
@@ -269,12 +271,17 @@ public abstract class ListFragment extends MySuperFragment implements EventListe
     protected abstract String getDetailFragmentName();
 
     protected void updateItem(OnCompleteListener<Void> listener) {
+        List<DocumentReference> unselectedReferences = new ArrayList<>(mAdapter.unselected_ids.size());
+        for (Object unselected_id : mAdapter.unselected_ids)
+            unselectedReferences.add(FirebaseFirestore.getInstance().collection(mAdapter.collection)
+                    .document((String) unselected_id));
+
         if (cost != null)
-            DataCost.updateCostBatch(cost, mAdapter.unselected_ids, listener);
+            DataCost.updateCostBatch(cost, unselectedReferences, listener);
         else if (person != null)
-            DataPerson.updatePersonBatch(person, mAdapter.unselected_ids, listener);
+            DataPerson.updatePersonBatch(person, unselectedReferences, listener);
         else if (trip != null)
-            DataTrip.updateTripBatch(trip, mAdapter.unselected_ids, listener);
+            DataTrip.updateTripBatch(trip, unselectedReferences, listener);
     }
 
     protected void setItem(DocumentSnapshot documentSnapshot) {
@@ -318,8 +325,7 @@ public abstract class ListFragment extends MySuperFragment implements EventListe
 
     protected abstract String getCollection();
 
-    @NonNull
-    protected abstract FirestoreAdapter generateAdapter(Query query, Set<String> selected_ids);
+    protected abstract void generateAdapter(Query query, Set<String> selected_ids);
 
     protected boolean isItemSet() {
         return cost != null
