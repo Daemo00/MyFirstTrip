@@ -174,7 +174,7 @@ public abstract class ListFragment extends MySuperFragment implements EventListe
                 if (isItemSet()) {
                     // Get only items in origItem
                     query = mFirestore.collection(getCollection())
-                            .whereEqualTo(getNestedFilter(), 1)
+                            .whereGreaterThanOrEqualTo(getNestedFilter(), 0f)
                             .limit(Constants.QUERY_LIMIT);
                     generateAdapter(query, selected_ids);
                     mAdapter.setMyRefreshing((MyRefreshing) getParentFragment());
