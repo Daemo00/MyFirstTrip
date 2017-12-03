@@ -3,8 +3,6 @@ package com.daemo.myfirsttrip.fragments;
 import com.daemo.myfirsttrip.R;
 import com.daemo.myfirsttrip.adapter.PeopleAdapter;
 import com.daemo.myfirsttrip.common.Constants;
-import com.daemo.myfirsttrip.models.Cost;
-import com.daemo.myfirsttrip.models.Trip;
 import com.google.firebase.firestore.Query;
 
 import java.util.HashSet;
@@ -14,11 +12,6 @@ import java.util.Set;
 
 public class PeopleListFragment extends ListFragment {
 
-    /**
-     * When this fragment is summoned to add relatedIds to a trip, this is that trip
-     */
-    Cost cost;
-    Trip trip;
 
     public PeopleListFragment() {
         // Required empty public constructor
@@ -55,7 +48,7 @@ public class PeopleListFragment extends ListFragment {
     }
 
     @Override
-    protected void setItemRelatedIds(Map<String, Integer> selectedIds) {
+    protected void setItemRelatedIds(Map<String, Float> selectedIds) {
         if (cost != null)
             cost.setPeopleIds(selectedIds);
         else if (trip != null)

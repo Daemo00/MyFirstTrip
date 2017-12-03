@@ -73,13 +73,13 @@ public class DataTrip {
 
         List<DocumentReference> docReferences = new ArrayList<>();
         // Delete all its links in other people it references!
-        for (Map.Entry<String, Integer> costEntry : trip.getCostsIds().entrySet())
+        for (Map.Entry<String, Float> costEntry : trip.getCostsIds().entrySet())
             docReferences.add(tripDocReference.getFirestore()
                     .collection(Constants.COSTS_COLLECTION)
                     .document(costEntry.getKey()));
 
         // Delete all its links in other trips it references!
-        for (Map.Entry<String, Integer> personEntry : trip.getPeopleIds().entrySet())
+        for (Map.Entry<String, Float> personEntry : trip.getPeopleIds().entrySet())
             docReferences.add(tripDocReference.getFirestore()
                     .collection(Constants.PEOPLE_COLLECTION)
                     .document(personEntry.getKey()));
@@ -108,12 +108,12 @@ public class DataTrip {
 
         List<DocumentReference> docReferences = new ArrayList<>();
         // Update all its links in other costs it references!
-        for (Map.Entry<String, Integer> costEntry : trip.getCostsIds().entrySet())
+        for (Map.Entry<String, Float> costEntry : trip.getCostsIds().entrySet())
             docReferences.add(tripDocReference.getFirestore()
                     .collection(Constants.COSTS_COLLECTION)
                     .document(costEntry.getKey()));
         // Update all its links in other trips it references!
-        for (Map.Entry<String, Integer> personEntry : trip.getPeopleIds().entrySet())
+        for (Map.Entry<String, Float> personEntry : trip.getPeopleIds().entrySet())
             docReferences.add(tripDocReference.getFirestore()
                     .collection(Constants.PEOPLE_COLLECTION)
                     .document(personEntry.getKey()));
@@ -121,7 +121,7 @@ public class DataTrip {
         // Updates to apply to every item
         Map<String, Object> updates = new HashMap<>();
         String field = String.format(Locale.getDefault(), "tripsIds.%s", trip.getId());
-        updates.put(field, 1);
+        updates.put(field, 0f);
 
         for (DocumentReference docReference : docReferences)
             batch.update(docReference, updates);
@@ -151,11 +151,11 @@ public class DataTrip {
 
             List<DocumentReference> docReferences = new ArrayList<>();
             // Update all its links in other items it references!
-            for (Map.Entry<String, Integer> costEntry : trip.getCostsIds().entrySet())
+            for (Map.Entry<String, Float> costEntry : trip.getCostsIds().entrySet())
                 docReferences.add(FirebaseFirestore.getInstance()
                         .collection(Constants.COSTS_COLLECTION)
                         .document(costEntry.getKey()));
-            for (Map.Entry<String, Integer> personEntry : trip.getPeopleIds().entrySet())
+            for (Map.Entry<String, Float> personEntry : trip.getPeopleIds().entrySet())
                 docReferences.add(FirebaseFirestore.getInstance()
                         .collection(Constants.PEOPLE_COLLECTION)
                         .document(personEntry.getKey()));
@@ -163,7 +163,7 @@ public class DataTrip {
             // Updates to apply to every item
             Map<String, Object> updates = new HashMap<>();
             String field = String.format(Locale.getDefault(), "tripsIds.%s", trip.getId());
-            updates.put(field, 1);
+            updates.put(field, 0f);
 
             for (DocumentReference docReference : docReferences)
                 transaction.update(docReference, updates);

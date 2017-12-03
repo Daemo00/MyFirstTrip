@@ -48,7 +48,7 @@ public class TripsListFragment extends ListFragment {
     }
 
     @Override
-    protected void setItemRelatedIds(Map<String, Integer> selectedIds) {
+    protected void setItemRelatedIds(Map<String, Float> selectedIds) {
         if (cost != null)
             cost.setTripsIds(selectedIds);
         else if (person != null)

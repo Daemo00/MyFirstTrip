@@ -13,8 +13,8 @@ public class Person {
     private boolean isDraft = false;
     private String name;
     private String surname;
-    private Map<String, Integer> tripsIds = new HashMap<>();
-    private Map<String, Integer> costsIds = new HashMap<>();
+    private Map<String, Float> tripsIds = new HashMap<>();
+    private Map<String, Float> costsIds = new HashMap<>();
 
     public Person() {
     }
@@ -57,11 +57,11 @@ public class Person {
         isDraft = draft;
     }
 
-    public Map<String, Integer> getTripsIds() {
+    public Map<String, Float> getTripsIds() {
         return tripsIds;
     }
 
-    public void setTripsIds(Map<String, Integer> tripsIds) {
+    public void setTripsIds(Map<String, Float> tripsIds) {
         this.tripsIds = tripsIds;
     }
 
@@ -73,11 +73,11 @@ public class Person {
         this.oldId = oldId;
     }
 
-    public Map<String, Integer> getCostsIds() {
+    public Map<String, Float> getCostsIds() {
         return costsIds;
     }
 
-    public void setCostsIds(Map<String, Integer> costsIds) {
+    public void setCostsIds(Map<String, Float> costsIds) {
         this.costsIds = costsIds;
     }
 }

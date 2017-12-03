@@ -233,11 +233,11 @@ public abstract class ListFragment extends MySuperFragment implements EventListe
         // Update the origItem with the selected items
         if (!getIsDraft())
             getMySuperActivity().showToast("Something went wrong, this should be a draft");
-        Map<String, Integer> relatedIds = new HashMap<>();
+        Map<String, Float> relatedIds = new HashMap<>();
         for (Object selected_id : mAdapter.selected_ids)
             if (selected_id instanceof String) {
                 String selectedId = (String) selected_id;
-                relatedIds.put(selectedId, 1);
+                relatedIds.put(selectedId, 1f);
             }
         setItemRelatedIds(relatedIds);
 
@@ -266,7 +266,7 @@ public abstract class ListFragment extends MySuperFragment implements EventListe
 
     protected abstract Set<String> getItemRelatedIds();
 
-    protected abstract void setItemRelatedIds(Map<String, Integer> selectedIds);
+    protected abstract void setItemRelatedIds(Map<String, Float> selectedIds);
 
     protected abstract String getDetailFragmentName();
 

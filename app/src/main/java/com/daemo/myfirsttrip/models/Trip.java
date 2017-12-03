@@ -13,8 +13,8 @@ public class Trip {
     private boolean isDraft = false;
     private String title;
     private String subtitle;
-    private Map<String, Integer> peopleIds = new HashMap<>();
-    private Map<String, Integer> costsIds = new HashMap<>();
+    private Map<String, Float> peopleIds = new HashMap<>();
+    private Map<String, Float> costsIds = new HashMap<>();
 
     public Trip() {
 
@@ -66,19 +66,19 @@ public class Trip {
         this.oldId = oldId;
     }
 
-    public Map<String, Integer> getPeopleIds() {
+    public Map<String, Float> getPeopleIds() {
         return peopleIds;
     }
 
-    public void setPeopleIds(Map<String, Integer> peopleIds) {
+    public void setPeopleIds(Map<String, Float> peopleIds) {
         this.peopleIds = peopleIds;
     }
 
-    public Map<String, Integer> getCostsIds() {
+    public Map<String, Float> getCostsIds() {
         return costsIds;
     }
 
-    public void setCostsIds(Map<String, Integer> costsIds) {
+    public void setCostsIds(Map<String, Float> costsIds) {
         this.costsIds = costsIds;
     }
 }
