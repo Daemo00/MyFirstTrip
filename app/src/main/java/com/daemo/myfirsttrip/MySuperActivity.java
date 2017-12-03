@@ -29,6 +29,7 @@ import com.daemo.myfirsttrip.R.layout;
 import com.daemo.myfirsttrip.R.string;
 import com.daemo.myfirsttrip.common.Constants;
 import com.daemo.myfirsttrip.common.Utils;
+import com.daemo.myfirsttrip.fragments.CostsListFragment;
 import com.daemo.myfirsttrip.fragments.MySuperFragment;
 import com.daemo.myfirsttrip.fragments.MySuperFragment.OnFragmentInteractionListener;
 import com.daemo.myfirsttrip.fragments.PeopleListFragment;
@@ -44,8 +45,8 @@ public class MySuperActivity extends AppCompatActivity
     private ActionBarDrawerToggle toggle;
     private MyBroadcastReceiver tripsReceiver;
 
-    private static void clearBackStack(MySuperActivity mySuperActivity) {
-        FragmentManager manager = mySuperActivity.getSupportFragmentManager();
+    private void clearBackStack() {
+        FragmentManager manager = this.getSupportFragmentManager();
         if (manager.getBackStackEntryCount() > 0) {
             BackStackEntry entry = manager.getBackStackEntryAt(0);
             manager.popBackStack(entry.getId(), FragmentManager.POP_BACK_STACK_INCLUSIVE);
@@ -169,15 +170,23 @@ public class MySuperActivity extends AppCompatActivity
     public boolean onNavigationItemSelected(@NonNull MenuItem item) {
         switch (item.getItemId()) {
             case id.nav_trips:
-                clearBackStack(this);
+                clearBackStack();
                 replaceFragment(
                         TripsListFragment.class.getName(),
                         new Bundle(),
                         false);
                 break;
             case id.nav_people:
+                clearBackStack();
                 replaceFragment(
                         PeopleListFragment.class.getName(),
+                        new Bundle(),
+                        false);
+                break;
+            case id.nav_costs:
+                clearBackStack();
+                replaceFragment(
+                        CostsListFragment.class.getName(),
                         new Bundle(),
                         false);
                 break;

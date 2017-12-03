@@ -144,16 +144,6 @@ public class PersonDetailFragment extends DetailFragment {
     }
 
     @Override
-    protected int getListFragment1Id() {
-        return R.id.fragment_costs_list;
-    }
-
-    @Override
-    protected int getListFragment2Id() {
-        return R.id.fragment_trips_list;
-    }
-
-    @Override
     protected void deleteItem(OnCompleteListener<Void> listener) {
         DataPerson.deletePersonBatch(getItemId(), listener);
     }

@@ -126,16 +126,6 @@ public class TripDetailFragment extends DetailFragment{
     }
 
     @Override
-    protected int getListFragment1Id() {
-        return R.id.fragment_people_list;
-    }
-
-    @Override
-    protected int getListFragment2Id() {
-        return R.id.fragment_trips_list;
-    }
-
-    @Override
     protected void deleteItem(OnCompleteListener<Void> listener) {
         DataTrip.deleteTripBatch(getItemId(), listener);
     }

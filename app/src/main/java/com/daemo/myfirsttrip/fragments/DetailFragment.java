@@ -5,6 +5,8 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
+import android.support.v4.app.FragmentPagerAdapter;
+import android.support.v4.view.ViewPager;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -12,6 +14,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 
+import com.daemo.myfirsttrip.R;
 import com.daemo.myfirsttrip.common.Constants;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
@@ -21,12 +24,15 @@ import com.google.firebase.firestore.EventListener;
 import com.google.firebase.firestore.FirebaseFirestoreException;
 import com.google.firebase.firestore.ListenerRegistration;
 
+import java.util.Arrays;
+import java.util.List;
+
 public abstract class DetailFragment extends MySuperFragment implements EventListener<DocumentSnapshot>, OnCompleteListener<Void> {
     private DocumentReference itemRef;
     private ListenerRegistration listenerRegistration;
     private DetailFragmentMode currStatus;
-    private ListFragment listFragment1;
-    private ListFragment listFragment2;
+    private ViewPager mViewPager;
+    private SubListsPagerAdapter mPagerAdapter;
 
 
     abstract DocumentReference getItemRef(String itemId);
@@ -34,9 +40,12 @@ public abstract class DetailFragment extends MySuperFragment implements EventLis
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        Bundle args = getArguments();
+        initializeByArgs(getArguments());
+    }
+
+    private void initializeByArgs(Bundle args) {
         if (args == null || args.isEmpty()) {
-            // From peopleIds list, add a person
+            // From items list, add an item
             currStatus = DetailFragmentMode.NEW;
             needsRefreshLayout = false;
             createDraftItemFromRef(null, task -> {
@@ -247,6 +256,7 @@ public abstract class DetailFragment extends MySuperFragment implements EventLis
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
+        mViewPager = view.findViewById(R.id.pager);
         switch (currStatus) {
             case NEW:
             case EDIT:
@@ -259,24 +269,6 @@ public abstract class DetailFragment extends MySuperFragment implements EventLis
     private void loadEditLayout(@Nullable View view) {
         if (view == null) return;
         setEditViewDetails(view);
-        Bundle b = new Bundle();
-        b.putString(getExtraItemId(), getItemId());
-        b.putBoolean(Constants.EXTRA_EDIT, true);
-        instantiateListFragments(b);
-    }
-
-    private void instantiateListFragments(Bundle b) {
-        FragmentManager childFragmentManager = getChildFragmentManager();
-        listFragment1 = (ListFragment) Fragment.instantiate(getContext(), getListFragmentName1(), b);
-        childFragmentManager.beginTransaction().replace(
-                getListFragment1Id(),
-                listFragment1
-        ).commit();
-        listFragment2 = (ListFragment) Fragment.instantiate(getContext(), getListFragmentName2(), b);
-        childFragmentManager.beginTransaction().replace(
-                getListFragment2Id(),
-                listFragment2
-        ).commit();
     }
 
     protected abstract void setEditViewDetails(View view);
@@ -284,15 +276,11 @@ public abstract class DetailFragment extends MySuperFragment implements EventLis
     private void loadLayout(@Nullable View view) {
         if (view == null) return;
         setViewDetails(view);
-        Bundle b = new Bundle();
-        b.putString(getExtraItemId(), getItemId());
-        instantiateListFragments(b);
     }
 
     @Override
     public void onRefresh() {
-        listFragment1.mAdapter.setQuery(listFragment1.mAdapter.mQuery);
-        listFragment2.mAdapter.setQuery(listFragment2.mAdapter.mQuery);
+        mPagerAdapter.refreshLists();
     }
 
     @Override
@@ -331,6 +319,8 @@ public abstract class DetailFragment extends MySuperFragment implements EventLis
                 loadLayout(getView());
                 break;
         }
+        mPagerAdapter = new SubListsPagerAdapter(getChildFragmentManager());
+        mViewPager.setAdapter(mPagerAdapter);
         setRefreshing(false);
     }
 
@@ -367,11 +357,49 @@ public abstract class DetailFragment extends MySuperFragment implements EventLis
 
     protected abstract void setViewDetails(@NonNull View view);
 
-    protected abstract int getListFragment1Id();
-
-    protected abstract int getListFragment2Id();
-
     protected abstract void deleteItem(OnCompleteListener<Void> listener);
 
     protected abstract void setItem(DocumentSnapshot documentSnapshot);
+
+    private class SubListsPagerAdapter extends FragmentPagerAdapter {
+        private final Bundle b = new Bundle();
+        private final List<ListFragment> listFragments;
+
+        private SubListsPagerAdapter(FragmentManager fm) {
+            super(fm);
+            switch (currStatus) {
+                case EDIT:
+                case NEW:
+                    b.putBoolean(Constants.EXTRA_EDIT, true);
+                case VIEW:
+                    b.putString(getExtraItemId(), DetailFragment.this.getItemId());
+                    break;
+            }
+            listFragments = Arrays.asList(
+                    (ListFragment) Fragment.instantiate(getContext(), getListFragmentName1(), b),
+                    (ListFragment) Fragment.instantiate(getContext(), getListFragmentName2(), b)
+            );
+        }
+
+        @Override
+        public Fragment getItem(int position) {
+            return listFragments.get(position);
+        }
+
+        @Nullable
+        @Override
+        public CharSequence getPageTitle(int position) {
+            return listFragments.get(position).title;
+        }
+
+        @Override
+        public int getCount() {
+            return 2;
+        }
+
+        void refreshLists() {
+            for (ListFragment listFragment : listFragments)
+                listFragment.mAdapter.setQuery(listFragment.mAdapter.mQuery);
+        }
+    }
 }

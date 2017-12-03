@@ -303,11 +303,11 @@ public abstract class ListFragment extends MySuperFragment implements EventListe
     }
 
     public DocumentReference getDocReference(Bundle args) {
-        if (cost != null)
+        if (args.containsKey(Constants.EXTRA_COST_ID))
             return DataCost.getCostRef(getExtraItemId(args));
-        else if (person != null)
+        else if (args.containsKey(Constants.EXTRA_PERSON_ID))
             return DataPerson.getPersonRef(getExtraItemId(args));
-        else if (trip != null)
+        else if (args.containsKey(Constants.EXTRA_TRIP_ID))
             return DataTrip.getTripRef(getExtraItemId(args));
         return null;
     }

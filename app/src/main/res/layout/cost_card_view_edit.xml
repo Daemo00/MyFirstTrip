@@ -37,7 +37,7 @@
                 android:paddingTop="16dp">
 
                 <android.support.v7.widget.AppCompatEditText
-                    android:id="@+id/person_name"
+                    android:id="@+id/cost_quantity"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:hint="@string/cost_quantity"
