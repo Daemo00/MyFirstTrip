@@ -58,8 +58,11 @@ public class PersonDetailFragment extends DetailFragment {
     protected void setEditViewDetails(View view) {
         EditText personName = view.findViewById(R.id.person_name);
         EditText personSurname = view.findViewById(R.id.person_surname);
+        EditText personTotalDebt = view.findViewById(R.id.person_total_debt);
+
         personName.setText(person.getName());
         personSurname.setText(person.getSurname());
+        personTotalDebt.setText(String.valueOf(person.getTotalDebt()));
     }
 
     @Override
@@ -126,8 +129,11 @@ public class PersonDetailFragment extends DetailFragment {
     protected void setItemDetailsFromView(View view) {
         TextView personName = view.findViewById(R.id.person_name);
         TextView personSurname = view.findViewById(R.id.person_surname);
+        TextView personTotalDebt = view.findViewById(R.id.person_total_debt);
+
         person.setName(personName.getText().toString());
         person.setSurname(personSurname.getText().toString());
+        person.setTotalDebt(Float.valueOf(personTotalDebt.getText().toString()));
     }
 
     @Override
@@ -139,8 +145,11 @@ public class PersonDetailFragment extends DetailFragment {
     protected void setViewDetails(@NonNull View view) {
         TextView personName = view.findViewById(R.id.person_name);
         TextView personSurname = view.findViewById(R.id.person_surname);
+        TextView personTotalDebt = view.findViewById(R.id.person_total_debt);
+
         personName.setText(person.getName());
         personSurname.setText(person.getSurname());
+        personTotalDebt.setText(String.valueOf(person.getTotalDebt()));
     }
 
     @Override

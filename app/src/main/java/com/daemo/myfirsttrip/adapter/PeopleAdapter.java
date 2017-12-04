@@ -62,6 +62,7 @@ public class PeopleAdapter extends FirestoreAdapter<PeopleAdapter.ViewHolder> im
         // each data item is just a string in this case
         private final TextView mPersonTitle;
         private final TextView mPersonSubtitle;
+        private final TextView mPersonTotalDebt;
         private final CardView mPersonCard;
         private final View mSelectedView;
 
@@ -70,6 +71,7 @@ public class PeopleAdapter extends FirestoreAdapter<PeopleAdapter.ViewHolder> im
             mPersonCard = v;
             mPersonTitle = v.findViewById(R.id.person_name);
             mPersonSubtitle = v.findViewById(R.id.person_surname);
+            mPersonTotalDebt = v.findViewById(R.id.person_total_debt);
             mSelectedView = v.findViewById(R.id.selected);
         }
 
@@ -80,6 +82,7 @@ public class PeopleAdapter extends FirestoreAdapter<PeopleAdapter.ViewHolder> im
         private void setPerson(MySuperFragment fragment, Person person) {
             this.mPersonTitle.setText(person.getName());
             this.mPersonSubtitle.setText(person.getSurname());
+            this.mPersonTotalDebt.setText(String.valueOf(person.getTotalDebt()));
             if (isClickable) {
                 Bundle b = new Bundle();
                 Bundle bb = new Bundle();

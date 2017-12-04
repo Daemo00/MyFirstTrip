@@ -49,6 +49,14 @@
                     android:layout_height="wrap_content"
                     android:hint="@string/person_subtitle"
                     android:textSize="@dimen/person_subtitle" />
+
+                <android.support.v7.widget.AppCompatEditText
+                    android:id="@+id/person_total_debt"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:hint="@string/person_total_debt"
+                    android:inputType="numberDecimal"
+                    android:textSize="@dimen/person_subtitle" />
             </android.support.v7.widget.LinearLayoutCompat>
 
         </android.support.v7.widget.LinearLayoutCompat>
