@@ -401,11 +401,12 @@ public abstract class DetailFragment extends MySuperFragment implements EventLis
 
         @Override
         public int getCount() {
-            return 2;
+            return listFragments.size();
         }
 
         void refreshLists() {
             for (ListFragment listFragment : listFragments)
+                // TODO after deleting a draft, mAdapter is null
                 listFragment.mAdapter.setQuery(listFragment.mAdapter.mQuery);
         }
     }
