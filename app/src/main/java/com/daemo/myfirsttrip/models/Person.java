@@ -15,6 +15,7 @@ public class Person {
     private String surname;
     private Map<String, Float> tripsIds = new HashMap<>();
     private Map<String, Float> costsIds = new HashMap<>();
+    private Float totalDebt;
 
     public Person() {
     }
@@ -23,6 +24,7 @@ public class Person {
         this.id = id;
         this.name = null;
         this.surname = null;
+        this.totalDebt = 0f;
     }
 
     public String getId() {
@@ -79,5 +81,13 @@ public class Person {
 
     public void setCostsIds(Map<String, Float> costsIds) {
         this.costsIds = costsIds;
+    }
+
+    public Float getTotalDebt() {
+        return totalDebt;
+    }
+
+    public void setTotalDebt(Float totalDebt) {
+        this.totalDebt = totalDebt;
     }
 }

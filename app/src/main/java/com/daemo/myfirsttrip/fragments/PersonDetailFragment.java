@@ -123,7 +123,7 @@ public class PersonDetailFragment extends DetailFragment {
     }
 
     @Override
-    protected void setItemDetails(View view) {
+    protected void setItemDetailsFromView(View view) {
         TextView personName = view.findViewById(R.id.person_name);
         TextView personSurname = view.findViewById(R.id.person_surname);
         person.setName(personName.getText().toString());

@@ -162,7 +162,7 @@ public abstract class ListFragment extends MySuperFragment implements EventListe
         switch (currStatus) {
             case CHOOSE:
                 if (isItemSet()) {
-                    // Get all items and populate selected_ids
+                    // Get all items and populate selectedIds
                     query = mFirestore.collection(getCollection())
                             .limit(Constants.QUERY_LIMIT);
                     selected_ids.addAll(getItemRelatedIds());
@@ -234,11 +234,8 @@ public abstract class ListFragment extends MySuperFragment implements EventListe
         if (!getIsDraft())
             getMySuperActivity().showToast("Something went wrong, this should be a draft");
         Map<String, Float> relatedIds = new HashMap<>();
-        for (Object selected_id : mAdapter.selected_ids)
-            if (selected_id instanceof String) {
-                String selectedId = (String) selected_id;
-                relatedIds.put(selectedId, 1f);
-            }
+        for (Object selectedId : mAdapter.selectedIds)
+            relatedIds.put((String) selectedId, 0f);
         setItemRelatedIds(relatedIds);
 
         setRefreshing(true);
@@ -271,8 +268,8 @@ public abstract class ListFragment extends MySuperFragment implements EventListe
     protected abstract String getDetailFragmentName();
 
     protected void updateItem(OnCompleteListener<Void> listener) {
-        List<DocumentReference> unselectedReferences = new ArrayList<>(mAdapter.unselected_ids.size());
-        for (Object unselected_id : mAdapter.unselected_ids)
+        List<DocumentReference> unselectedReferences = new ArrayList<>(mAdapter.unselectedIds.size());
+        for (Object unselected_id : mAdapter.unselectedIds)
             unselectedReferences.add(FirebaseFirestore.getInstance().collection(mAdapter.collection)
                     .document((String) unselected_id));
 

@@ -47,7 +47,7 @@ public class CostsAdapter extends FirestoreAdapter<CostsAdapter.ViewHolder> impl
         holder.setCost(fragment, cost);
         if (isChooseMode)
             // Here I am just highlighting the background
-            holder.isSelected(selected_ids.contains(cost.getId()));
+            holder.isSelected(selectedIds.contains(cost.getId()));
     }
 
     @Override
@@ -105,11 +105,11 @@ public class CostsAdapter extends FirestoreAdapter<CostsAdapter.ViewHolder> impl
                                 else
                                     selected_positions.add(position);
 
-                                if (selected_ids.contains(cost.getId())) {
-                                    unselected_ids.add(cost.getId());
-                                    selected_ids.remove(cost.getId());
+                                if (selectedIds.contains(cost.getId())) {
+                                    unselectedIds.add(cost.getId());
+                                    selectedIds.remove(cost.getId());
                                 } else
-                                    selected_ids.add(cost.getId());
+                                    selectedIds.add(cost.getId());
 
                                 for (Integer selected_position : selected_positions)
                                     notifyItemChanged(selected_position);

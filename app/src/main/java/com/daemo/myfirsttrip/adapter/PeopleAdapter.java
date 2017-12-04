@@ -46,7 +46,7 @@ public class PeopleAdapter extends FirestoreAdapter<PeopleAdapter.ViewHolder> im
         holder.setPerson(fragment, person);
         if (isChooseMode)
             // Here I am just highlighting the background
-            holder.isSelected(selected_ids.contains(person.getId()));
+            holder.isSelected(selectedIds.contains(person.getId()));
     }
 
     @Override
@@ -104,11 +104,11 @@ public class PeopleAdapter extends FirestoreAdapter<PeopleAdapter.ViewHolder> im
                                 else
                                     selected_positions.add(position);
 
-                                if (selected_ids.contains(person.getId())) {
-                                    unselected_ids.add(person.getId());
-                                    selected_ids.remove(person.getId());
+                                if (selectedIds.contains(person.getId())) {
+                                    unselectedIds.add(person.getId());
+                                    selectedIds.remove(person.getId());
                                 } else
-                                    selected_ids.add(person.getId());
+                                    selectedIds.add(person.getId());
 
                                 for (Integer selected_position : selected_positions)
                                     notifyItemChanged(selected_position);

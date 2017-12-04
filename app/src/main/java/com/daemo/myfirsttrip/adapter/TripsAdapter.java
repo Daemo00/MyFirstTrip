@@ -46,7 +46,7 @@ public class TripsAdapter extends FirestoreAdapter<TripsAdapter.ViewHolder> impl
         holder.setTrip(fragment, trip);
         if (isChooseMode)
             // Here I am just highlighting the background
-            holder.isSelected(selected_ids.contains(trip.getId()));
+            holder.isSelected(selectedIds.contains(trip.getId()));
     }
 
     @Override
@@ -64,12 +64,14 @@ public class TripsAdapter extends FirestoreAdapter<TripsAdapter.ViewHolder> impl
         private final TextView mTripSubtitle;
         private final CardView mTripCard;
         private final View mSelectedView;
+        private final TextView mTripTotalCost;
 
         ViewHolder(CardView v) {
             super(v);
             mTripCard = v;
             mTripTitle = v.findViewById(R.id.trip_title);
             mTripSubtitle = v.findViewById(R.id.trip_subtitle);
+            mTripTotalCost = v.findViewById(R.id.trip_total_cost);
             mSelectedView = v.findViewById(R.id.selected);
         }
 
@@ -80,6 +82,7 @@ public class TripsAdapter extends FirestoreAdapter<TripsAdapter.ViewHolder> impl
         private void setTrip(MySuperFragment fragment, Trip trip) {
             this.mTripTitle.setText(trip.getTitle());
             this.mTripSubtitle.setText(trip.getSubtitle());
+            this.mTripTotalCost.setText(String.valueOf(trip.getTotalCost()));
             if (isClickable) {
                 Bundle b = new Bundle();
                 Bundle bb = new Bundle();
@@ -104,11 +107,11 @@ public class TripsAdapter extends FirestoreAdapter<TripsAdapter.ViewHolder> impl
                                 else
                                     selected_positions.add(position);
 
-                                if (selected_ids.contains(trip.getId())) {
-                                    unselected_ids.add(trip.getId());
-                                    selected_ids.remove(trip.getId());
+                                if (selectedIds.contains(trip.getId())) {
+                                    unselectedIds.add(trip.getId());
+                                    selectedIds.remove(trip.getId());
                                 } else
-                                    selected_ids.add(trip.getId());
+                                    selectedIds.add(trip.getId());
 
                                 for (Integer selected_position : selected_positions)
                                     notifyItemChanged(selected_position);

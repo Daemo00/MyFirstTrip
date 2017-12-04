@@ -42,4 +42,5 @@
     <string name="cost_quantity">1</string>
     <string name="cost_motivation">Cost motivation</string>
     <string name="costs">Costs</string>
+    <string name="trip_total_cost">0</string>
 </resources>

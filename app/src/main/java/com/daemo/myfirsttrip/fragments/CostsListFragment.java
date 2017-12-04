@@ -3,6 +3,9 @@ package com.daemo.myfirsttrip.fragments;
 import com.daemo.myfirsttrip.R;
 import com.daemo.myfirsttrip.adapter.CostsAdapter;
 import com.daemo.myfirsttrip.common.Constants;
+import com.daemo.myfirsttrip.models.Cost;
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.Query;
 
 import java.util.HashSet;
@@ -53,6 +56,21 @@ public class CostsListFragment extends ListFragment {
             person.setCostsIds(selectedIds);
         else if (trip != null)
             trip.setCostsIds(selectedIds);
+    }
+
+    @Override
+    protected void updateItem(OnCompleteListener<Void> listener) {
+        Float totalCost = 0f;
+        for (Object mSnapshot : mAdapter.mSnapshots) {
+            Cost cost = ((DocumentSnapshot) mSnapshot).toObject(Cost.class);
+            if (mAdapter.selectedIds.contains(cost.getId()))
+                totalCost += cost.getQuantity();
+        }
+        if (trip != null)
+            trip.setTotalCost(totalCost);
+        else if (person != null)
+            person.setTotalDebt(totalCost);
+        super.updateItem(listener);
     }
 
     @Override

@@ -100,7 +100,7 @@ public class CostDetailFragment extends DetailFragment {
     }
 
     @Override
-    protected void setItemDetails(View view) {
+    protected void setItemDetailsFromView(View view) {
         EditText costQuantity = view.findViewById(R.id.cost_quantity);
         Float quantity = Float.valueOf(costQuantity.getText().toString());
         EditText costMotivation = view.findViewById(R.id.cost_motivation);

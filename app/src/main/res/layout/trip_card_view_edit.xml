@@ -48,6 +48,14 @@
                     android:layout_height="wrap_content"
                     android:hint="@string/trip_subtitle"
                     android:textSize="@dimen/trip_subtitle" />
+
+                <android.support.v7.widget.AppCompatEditText
+                    android:id="@+id/trip_total_cost"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:hint="@string/trip_total_cost"
+                    android:inputType="numberDecimal"
+                    android:textSize="@dimen/trip_subtitle" />
             </android.support.v7.widget.LinearLayoutCompat>
 
         </android.support.v7.widget.LinearLayoutCompat>

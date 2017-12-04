@@ -13,6 +13,7 @@ public class Trip {
     private boolean isDraft = false;
     private String title;
     private String subtitle;
+    private Float totalCost;
     private Map<String, Float> peopleIds = new HashMap<>();
     private Map<String, Float> costsIds = new HashMap<>();
 
@@ -24,6 +25,7 @@ public class Trip {
         this.id = id;
         this.title = null;
         this.subtitle = null;
+        this.totalCost = 0f;
     }
 
     public String getId() {
@@ -80,5 +82,13 @@ public class Trip {
 
     public void setCostsIds(Map<String, Float> costsIds) {
         this.costsIds = costsIds;
+    }
+
+    public Float getTotalCost() {
+        return totalCost;
+    }
+
+    public void setTotalCost(Float totalCost) {
+        this.totalCost = totalCost;
     }
 }

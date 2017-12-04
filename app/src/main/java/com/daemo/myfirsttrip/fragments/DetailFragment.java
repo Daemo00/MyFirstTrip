@@ -227,7 +227,7 @@ public abstract class DetailFragment extends MySuperFragment implements EventLis
         //TODO validation
         View root = getView();
         if (root != null)
-            setItemDetails(root);
+            setItemDetailsFromView(root);
 
         setRefreshing(true);
         commitItem(task -> setRefreshing(false));
@@ -356,7 +356,7 @@ public abstract class DetailFragment extends MySuperFragment implements EventLis
 
     protected abstract String getListFragmentName1();
 
-    protected abstract void setItemDetails(View view);
+    protected abstract void setItemDetailsFromView(View view);
 
     protected abstract void commitItem(OnCompleteListener<Void> listener);
 

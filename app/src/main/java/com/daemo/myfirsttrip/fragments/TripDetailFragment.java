@@ -58,8 +58,11 @@ public class TripDetailFragment extends DetailFragment{
     protected void setEditViewDetails(View view) {
         EditText trip_title = view.findViewById(R.id.trip_title);
         EditText trip_subtitle = view.findViewById(R.id.trip_subtitle);
+        EditText trip_total_cost = view.findViewById(R.id.trip_total_cost);
+
         trip_title.setText(trip.getTitle());
         trip_subtitle.setText(trip.getSubtitle());
+        trip_total_cost.setText(String.valueOf(trip.getTotalCost()));
     }
 
     @Override
@@ -98,13 +101,17 @@ public class TripDetailFragment extends DetailFragment{
     }
 
     @Override
-    protected void setItemDetails(View view) {
+    protected void setItemDetailsFromView(View view) {
         EditText tripTitle = view.findViewById(R.id.trip_title);
         String title = tripTitle.getText().toString();
         EditText tripSubtitle = view.findViewById(R.id.trip_subtitle);
         String subtitle = tripSubtitle.getText().toString();
+        EditText tripTotalCost = view.findViewById(R.id.trip_total_cost);
+        Float totalCost = Float.valueOf(tripTotalCost.getText().toString());
+
         trip.setTitle(title);
         trip.setSubtitle(subtitle);
+        trip.setTotalCost(totalCost);
     }
 
     @Override
@@ -121,8 +128,11 @@ public class TripDetailFragment extends DetailFragment{
     protected void setViewDetails(@NonNull View view) {
         TextView trip_title = view.findViewById(R.id.trip_title);
         TextView trip_subtitle = view.findViewById(R.id.trip_subtitle);
+        TextView trip_total_cost = view.findViewById(R.id.trip_total_cost);
+
         trip_title.setText(trip.getTitle());
         trip_subtitle.setText(trip.getSubtitle());
+        trip_total_cost.setText(String.valueOf(trip.getTotalCost()));
     }
 
     @Override
