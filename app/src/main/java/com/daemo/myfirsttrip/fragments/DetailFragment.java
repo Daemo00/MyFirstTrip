@@ -406,7 +406,7 @@ public abstract class DetailFragment extends MySuperFragment implements EventLis
 
         void refreshLists() {
             for (ListFragment listFragment : listFragments)
-                // TODO after deleting a draft, mAdapter is null
+                // TODO after deleting a draft, mAdapter is null, consider to override instantiateItem
                 listFragment.mAdapter.setQuery(listFragment.mAdapter.mQuery);
         }
     }

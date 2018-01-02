@@ -11,10 +11,14 @@ public class Cost {
     private String id;
     private String oldId = null;
     private boolean isDraft = false;
-    private Float quantity;
-    private String motivation;
+    private Float quantity = 0f;
+    private String motivation = "";
+    private String payerId = "";
+    /**
+     * Map from person id to how much it contributes to the cost
+     */
     private Map<String, Float> peopleIds = new HashMap<>();
-    private Map<String, Float> tripsIds = new HashMap<>();
+    private String tripId = "";
 
     public Cost() {
 
@@ -22,8 +26,6 @@ public class Cost {
 
     public Cost(String id) {
         this.id = id;
-        this.quantity = 1.0f;
-        this.motivation = null;
     }
 
     public String getId() {
@@ -74,11 +76,19 @@ public class Cost {
         this.peopleIds = peopleIds;
     }
 
-    public Map<String, Float> getTripsIds() {
-        return tripsIds;
+    public String getTripId() {
+        return tripId;
     }
 
-    public void setTripsIds(Map<String, Float> tripsIds) {
-        this.tripsIds = tripsIds;
+    public void setTripId(String tripId) {
+        this.tripId = tripId;
+    }
+
+    public String getPayerId() {
+        return payerId;
+    }
+
+    public void setPayerId(String payerId) {
+        this.payerId = payerId;
     }
 }

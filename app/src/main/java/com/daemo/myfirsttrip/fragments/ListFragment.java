@@ -47,7 +47,7 @@ public abstract class ListFragment extends MySuperFragment implements EventListe
 
     public FirestoreAdapter mAdapter;
     /**
-     * When this fragment is summoned to add relatedIds to a person/trip, this is that person/trip
+     * When this fragment is summoned to add relatedIds to a cost/person/trip, this is that cost/person/trip
      */
     Cost cost;
     Person person;

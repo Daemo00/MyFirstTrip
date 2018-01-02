@@ -49,8 +49,12 @@ public class PeopleListFragment extends ListFragment {
 
     @Override
     protected void setItemRelatedIds(Map<String, Float> selectedIds) {
-        if (cost != null)
+        if (cost != null) {
+            if (selectedIds.size() > 0)
+                for (Map.Entry<String, Float> stringFloatEntry : selectedIds.entrySet())
+                    stringFloatEntry.setValue(cost.getQuantity() / selectedIds.size());
             cost.setPeopleIds(selectedIds);
+        }
         else if (trip != null)
             trip.setPeopleIds(selectedIds);
     }

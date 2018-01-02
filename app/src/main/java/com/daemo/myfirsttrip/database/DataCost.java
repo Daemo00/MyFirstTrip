@@ -72,24 +72,25 @@ public class DataCost {
         batch.delete(costDocReference);
 
         List<DocumentReference> docReferences = new ArrayList<>();
-        // Delete all its links in other trips it references!
+        // Delete all its links in people it references!
         for (Map.Entry<String, Float> personEntry : cost.getPeopleIds().entrySet())
-            docReferences.add(costDocReference.getFirestore()
-                    .collection(Constants.PEOPLE_COLLECTION)
-                    .document(personEntry.getKey()));
+            docReferences.add(
+                    costDocReference.getFirestore()
+                            .collection(Constants.PEOPLE_COLLECTION)
+                            .document(personEntry.getKey()));
 
-        // Delete all its links in other trips it references!
-        for (Map.Entry<String, Float> tripEntry : cost.getTripsIds().entrySet())
-            docReferences.add(costDocReference.getFirestore()
-                    .collection(Constants.TRIPS_COLLECTION)
-                    .document(tripEntry.getKey()));
+        // Delete all its links in the trip it references!
+        docReferences.add(
+                costDocReference.getFirestore()
+                        .collection(Constants.TRIPS_COLLECTION)
+                        .document(cost.getTripId()));
 
-        // Update to be applied to costs and trips
+        // Update to be applied to costs and the trip
         Map<String, Object> updates = new HashMap<>();
         updates.put(String.format(Locale.getDefault(), "costsIds.%s", cost.getId()), FieldValue.delete());
 
         for (DocumentReference docReference : docReferences)
-            docReference.update(updates);
+            batch.update(docReference, updates);
 
         batch.commit().addOnCompleteListener(onCompleteListener);
     }
@@ -109,14 +110,16 @@ public class DataCost {
         List<DocumentReference> docReferences = new ArrayList<>();
         // Update all its links in other people it references!
         for (Map.Entry<String, Float> personEntry : cost.getPeopleIds().entrySet())
-            docReferences.add(costDocReference.getFirestore()
-                    .collection(Constants.PEOPLE_COLLECTION)
-                    .document(personEntry.getKey()));
-        // Update all its links in other trips it references!
-        for (Map.Entry<String, Float> tripEntry : cost.getTripsIds().entrySet())
-            docReferences.add(costDocReference.getFirestore()
+            docReferences.add(
+                    costDocReference.getFirestore()
+                            .collection(Constants.PEOPLE_COLLECTION)
+                            .document(personEntry.getKey()));
+
+        // Update all its links in the trip it references!
+        docReferences.add(
+                costDocReference.getFirestore()
                     .collection(Constants.TRIPS_COLLECTION)
-                    .document(tripEntry.getKey()));
+                        .document(cost.getTripId()));
 
         // Updates to apply to every item
         Map<String, Object> updates = new HashMap<>();
@@ -130,8 +133,10 @@ public class DataCost {
     }
 
     public static void createDraftCostFromRef(@Nullable DocumentReference costDocReference, OnCompleteListener<DocumentReference> onCompleteListener) {
-        DocumentReference draftCostDocReference = FirebaseFirestore.getInstance().collection(Constants.COSTS_COLLECTION).document();
+        DocumentReference draftCostDocReference = FirebaseFirestore.getInstance()
+                .collection(Constants.COSTS_COLLECTION).document();
         if (costDocReference == null) {
+            // Creating a draft out of nowhere
             WriteBatch batch = FirebaseFirestore.getInstance().batch();
             Cost cost = new Cost(draftCostDocReference.getId());
             cost.setDraft(true);
@@ -140,29 +145,33 @@ public class DataCost {
                     Tasks.forResult(draftCostDocReference).addOnCompleteListener(onCompleteListener));
             return;
         }
+        // Creating a draft as a copy of costDocReference (need a transaction to read it)
         FirebaseFirestore.getInstance().runTransaction(transaction -> {
             DocumentSnapshot documentSnapshot = transaction.get(costDocReference);
+            // When reading from a reference, transaction requires to also write something into it
             transaction.update(costDocReference, "newId", draftCostDocReference.getId());
-            Cost cost = documentSnapshot.toObject(Cost.class);
-            cost.setDraft(true);
-            cost.setOldId(cost.getId());
-            cost.setId(draftCostDocReference.getId());
-            transaction.set(draftCostDocReference, cost);
+            Cost draftCost = documentSnapshot.toObject(Cost.class);
+            draftCost.setId(draftCostDocReference.getId());
+            draftCost.setOldId(costDocReference.getId());
+            draftCost.setDraft(true);
+            transaction.set(draftCostDocReference, draftCost);
 
             List<DocumentReference> docReferences = new ArrayList<>();
             // Update all its links in other items it references!
-            for (Map.Entry<String, Float> personEntry : cost.getPeopleIds().entrySet())
-                docReferences.add(FirebaseFirestore.getInstance()
-                        .collection(Constants.PEOPLE_COLLECTION)
-                        .document(personEntry.getKey()));
-            for (Map.Entry<String, Float> tripEntry : cost.getTripsIds().entrySet())
-                docReferences.add(FirebaseFirestore.getInstance()
+            for (Map.Entry<String, Float> personEntry : draftCost.getPeopleIds().entrySet())
+                docReferences.add(
+                        FirebaseFirestore.getInstance()
+                                .collection(Constants.PEOPLE_COLLECTION)
+                                .document(personEntry.getKey()));
+
+            docReferences.add(
+                    FirebaseFirestore.getInstance()
                         .collection(Constants.TRIPS_COLLECTION)
-                        .document(tripEntry.getKey()));
+                            .document(draftCost.getTripId()));
 
             // Updates to apply to every item
             Map<String, Object> updates = new HashMap<>();
-            String field = String.format(Locale.getDefault(), "costsIds.%s", cost.getId());
+            String field = String.format(Locale.getDefault(), "costsIds.%s", draftCost.getId());
             updates.put(field, 0f);
 
             for (DocumentReference docReference : docReferences)
