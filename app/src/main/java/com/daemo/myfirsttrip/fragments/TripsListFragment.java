@@ -40,18 +40,20 @@ public class TripsListFragment extends ListFragment {
 
     @Override
     protected Set<String> getItemRelatedIds() {
-        if (cost != null)
-            return cost.getTripsIds().keySet();
-        else if (person != null)
+        if (cost != null) {
+            Set<String> s = new HashSet<>();
+            s.add(cost.getTripId());
+            return s;
+        } else if (person != null)
             return person.getTripsIds().keySet();
         return new HashSet<>();
     }
 
     @Override
     protected void setItemRelatedIds(Map<String, Float> selectedIds) {
-        if (cost != null)
-            cost.setTripsIds(selectedIds);
-        else if (person != null)
+        if (cost != null) {
+            cost.setTripId((String) selectedIds.keySet().toArray()[0]);
+        } else if (person != null)
             person.setTripsIds(selectedIds);
     }
 

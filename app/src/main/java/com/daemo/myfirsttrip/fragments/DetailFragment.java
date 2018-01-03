@@ -370,10 +370,15 @@ public abstract class DetailFragment extends MySuperFragment implements EventLis
 
     private class SubListsPagerAdapter extends FragmentPagerAdapter {
         private final Bundle b = new Bundle();
-        private final List<ListFragment> listFragments;
+        private final List<String> listFragmentsNames =
+                Arrays.asList(getListFragmentName1(), getListFragmentName2());
 
-        private SubListsPagerAdapter(FragmentManager fm) {
+        SubListsPagerAdapter(FragmentManager fm) {
             super(fm);
+        }
+
+        @Override
+        public Fragment getItem(int position) {
             switch (currStatus) {
                 case EDIT:
                 case NEW:
@@ -382,32 +387,27 @@ public abstract class DetailFragment extends MySuperFragment implements EventLis
                     b.putString(getExtraItemId(), DetailFragment.this.getItemId());
                     break;
             }
-            listFragments = Arrays.asList(
-                    (ListFragment) Fragment.instantiate(getContext(), getListFragmentName1(), b),
-                    (ListFragment) Fragment.instantiate(getContext(), getListFragmentName2(), b)
-            );
-        }
-
-        @Override
-        public Fragment getItem(int position) {
-            return listFragments.get(position);
+            return Fragment.instantiate(getContext(), listFragmentsNames.get(position), b);
         }
 
         @Nullable
         @Override
         public CharSequence getPageTitle(int position) {
-            return listFragments.get(position).title;
+            return listFragmentsNames.get(position);
         }
 
         @Override
         public int getCount() {
-            return listFragments.size();
+            return listFragmentsNames.size();
         }
 
         void refreshLists() {
-            for (ListFragment listFragment : listFragments)
-                // TODO after deleting a draft, mAdapter is null, consider to override instantiateItem
-                listFragment.mAdapter.setQuery(listFragment.mAdapter.mQuery);
+            for (Fragment fragment : getChildFragmentManager().getFragments()) {
+                if (fragment instanceof ListFragment) {
+                    ListFragment listFragment = (ListFragment) fragment;
+                    listFragment.mAdapter.setQuery(listFragment.mAdapter.mQuery);
+                }
+            }
         }
     }
 }
