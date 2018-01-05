@@ -79,11 +79,13 @@ public class DataCost {
                             .collection(Constants.PEOPLE_COLLECTION)
                             .document(personEntry.getKey()));
 
-        // Delete all its links in the trip it references!
-        docReferences.add(
-                costDocReference.getFirestore()
-                        .collection(Constants.TRIPS_COLLECTION)
-                        .document(cost.getTripId()));
+
+        // Delete all its links in the trip it references, if any!
+        if (cost.getTripId() != null && !cost.getTripId().isEmpty())
+            docReferences.add(
+                    costDocReference.getFirestore()
+                            .collection(Constants.TRIPS_COLLECTION)
+                            .document(cost.getTripId()));
 
         // Update to be applied to costs and the trip
         Map<String, Object> updates = new HashMap<>();
