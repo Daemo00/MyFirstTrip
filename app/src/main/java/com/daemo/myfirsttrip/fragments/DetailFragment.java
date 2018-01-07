@@ -68,7 +68,7 @@ public abstract class DetailFragment extends MySuperFragment implements EventLis
             // Click on edit from the item
             currStatus = DetailFragmentMode.EDIT;
             needsRefreshLayout = true;
-            createDraftItemFromRef(null, getItemRef(args.getString(getExtraItemId())), task -> {
+            createDraftItemFromRef(getOrigItem(args), getItemRef(args.getString(getExtraItemId())), task -> {
                 if (task.getException() != null) {
                     getMySuperActivity().showToast(task.getException().getMessage());
                     return;

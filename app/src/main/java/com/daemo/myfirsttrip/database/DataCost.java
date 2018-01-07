@@ -151,8 +151,7 @@ public class DataCost {
             WriteBatch batch = FirebaseFirestore.getInstance().batch();
             origCost.setId(draftCostDocReference.getId());
             origCost.setDraft(true);
-            batch.set(draftCostDocReference, origCost);
-            batch.commit().addOnCompleteListener(task ->
+            updateCostBatch(origCost, new ArrayList<>(), task ->
                     Tasks.forResult(draftCostDocReference).addOnCompleteListener(onCompleteListener));
             return;
         }

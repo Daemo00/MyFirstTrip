@@ -236,8 +236,8 @@ public abstract class ListFragment extends MySuperFragment implements EventListe
 
     private void confirmSelection() {
         // Update the origItem with the selected items
-        if (!getIsDraft())
-            getMySuperActivity().showToast("Something went wrong, this should be a draft");
+//        if (!getIsDraft())
+//            getMySuperActivity().showToast("Something went wrong, this should be a draft");
         Map<String, Float> relatedIds = new HashMap<>();
         for (Object selectedId : mAdapter.selectedIds)
             relatedIds.put((String) selectedId, 0f);
@@ -246,6 +246,11 @@ public abstract class ListFragment extends MySuperFragment implements EventListe
         setRefreshing(true);
 
         updateItem(task -> {
+            if (task.getException() != null) {
+                getMySuperActivity().showToast(task.getException().getMessage());
+                setRefreshing(false);
+                return;
+            }
             FragmentManager fragmentManager = getFragmentManager();
             if (fragmentManager != null)
                 // Go back to whoever called this

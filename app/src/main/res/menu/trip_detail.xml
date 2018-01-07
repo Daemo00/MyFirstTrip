@@ -11,4 +11,9 @@
         android:icon="@drawable/ic_attach_money_black_24dp"
         android:title="@string/add_cost"
         app:showAsAction="ifRoom" />
+    <item
+        android:id="@+id/choose_person"
+        android:icon="@drawable/ic_contacts_black_24dp"
+        android:title="@string/choose_person"
+        app:showAsAction="ifRoom" />
 </menu>
