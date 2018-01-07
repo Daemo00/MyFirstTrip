@@ -11,9 +11,4 @@
         android:icon="@drawable/ic_done_black_24dp"
         android:title="@string/confirm_trip"
         app:showAsAction="ifRoom" />
-    <item
-        android:id="@+id/choose_person"
-        android:icon="@drawable/ic_contacts_black_24dp"
-        android:title="@string/choose_person"
-        app:showAsAction="ifRoom" />
 </menu>

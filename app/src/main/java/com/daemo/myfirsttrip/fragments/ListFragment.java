@@ -254,10 +254,12 @@ public abstract class ListFragment extends MySuperFragment implements EventListe
             FragmentManager fragmentManager = getFragmentManager();
             if (fragmentManager != null)
                 // Go back to whoever called this
+            {
+                setRefreshing(false);
                 fragmentManager.popBackStack();
-            else
+            } else {
                 getMySuperActivity().showToast("Fragment manager not found");
-            setRefreshing(false);
+            }
         });
     }
 
