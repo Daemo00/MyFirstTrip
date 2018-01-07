@@ -1,6 +1,7 @@
 package com.daemo.myfirsttrip.fragments;
 
 
+import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.view.View;
 import android.widget.EditText;
@@ -135,6 +136,14 @@ public class CostDetailFragment extends DetailFragment {
     @Override
     protected int getChooseMenuItem2() {
         return R.id.choose_trip;
+    }
+
+    @NonNull
+    @Override
+    protected Bundle getChooseFragment2Bundle() {
+        Bundle res = super.getChooseFragment2Bundle();
+        res.putBoolean(Constants.EXTRA_UNIQUE, true);
+        return res;
     }
 
     @Override

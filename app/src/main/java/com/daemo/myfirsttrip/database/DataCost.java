@@ -166,10 +166,11 @@ public class DataCost {
                                 .collection(Constants.PEOPLE_COLLECTION)
                                 .document(personEntry.getKey()));
 
-            docReferences.add(
-                    FirebaseFirestore.getInstance()
-                        .collection(Constants.TRIPS_COLLECTION)
-                            .document(draftCost.getTripId()));
+            if (draftCost.getTripId() != null && !draftCost.getTripId().isEmpty())
+                docReferences.add(
+                        FirebaseFirestore.getInstance()
+                                .collection(Constants.TRIPS_COLLECTION)
+                                .document(draftCost.getTripId()));
 
             // Updates to apply to every item
             Map<String, Object> updates = new HashMap<>();

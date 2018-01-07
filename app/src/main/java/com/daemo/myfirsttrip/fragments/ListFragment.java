@@ -57,6 +57,7 @@ public abstract class ListFragment extends MySuperFragment implements EventListe
     private RecyclerView mRecyclerView;
     private ListenerRegistration listenerRegistration;
     private ListFragmentMode currStatus;
+    private boolean unique = false;
 
 
     @Override
@@ -80,6 +81,8 @@ public abstract class ListFragment extends MySuperFragment implements EventListe
                 needsRefreshLayout = false;
             } else if (args.containsKey(Constants.EXTRA_CHOOSE) && args.getBoolean(Constants.EXTRA_CHOOSE)) {
                 currStatus = ListFragmentMode.CHOOSE;
+                if (args.containsKey(Constants.EXTRA_UNIQUE) && args.getBoolean(Constants.EXTRA_UNIQUE))
+                    unique = args.getBoolean(Constants.EXTRA_UNIQUE);
                 needsRefreshLayout = true;
             }
         }
@@ -181,8 +184,8 @@ public abstract class ListFragment extends MySuperFragment implements EventListe
                 if (isItemSet()) {
                     // Get only items in origItem
                     query = mFirestore.collection(getCollection())
-                            .whereGreaterThanOrEqualTo(getNestedFilter(), 0f)
                             .limit(Constants.QUERY_LIMIT);
+                    query = getNestedFilter(query);
                     generateAdapter(query, selected_ids);
                     mAdapter.setMyRefreshing((MyRefreshing) getParentFragment());
                 }
@@ -198,6 +201,7 @@ public abstract class ListFragment extends MySuperFragment implements EventListe
                 touchHelper.attachToRecyclerView(mRecyclerView);
                 break;
         }
+        mAdapter.setUnique(unique);
         mAdapter.setChooseMode(currStatus.equals(ListFragmentMode.CHOOSE));
         mAdapter.setClickable(!currStatus.equals(ListFragmentMode.NESTED_EDIT));
         mAdapter.startListening();
@@ -347,14 +351,22 @@ public abstract class ListFragment extends MySuperFragment implements EventListe
         return false;
     }
 
-    protected String getNestedFilter() {
+    protected Query getNestedFilter(Query query) {
         if (cost != null)
-            return String.format(Locale.getDefault(), "costsIds.%s", cost.getId());
+            if (getCollection().equals(Constants.TRIPS_COLLECTION) && !cost.getTripId().isEmpty())
+                // In this case, we are in cost details, and this is the list of trips
+                return query.whereEqualTo("id", cost.getTripId());
+            else
+                return query.whereGreaterThanOrEqualTo(String.format(Locale.getDefault(), "costsIds.%s", cost.getId()), 0f);
         else if (person != null)
-            return String.format(Locale.getDefault(), "peopleIds.%s", person.getId());
+            return query.whereGreaterThanOrEqualTo(String.format(Locale.getDefault(), "peopleIds.%s", person.getId()), 0f);
         else if (trip != null)
-            return String.format(Locale.getDefault(), "tripsIds.%s", trip.getId());
-        return null;
+            if (getCollection().equals(Constants.COSTS_COLLECTION))
+                // In this case, we are in trip details, and this is the list of costs
+                return query.whereEqualTo("tripId", trip.getId());
+            else
+                return query.whereGreaterThanOrEqualTo(String.format(Locale.getDefault(), "tripsIds.%s", trip.getId()), 0f);
+        return query;
     }
 
     protected abstract int getMenu_choose();

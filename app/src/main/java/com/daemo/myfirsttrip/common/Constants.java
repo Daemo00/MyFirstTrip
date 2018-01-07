@@ -16,6 +16,7 @@ public class Constants {
 
     public static final String EXTRA_EDIT = BuildConfig.APPLICATION_ID.concat(".EXTRA_EDIT");
     public static final String EXTRA_CHOOSE = BuildConfig.APPLICATION_ID.concat(".EXTRA_CHOOSE");
+    public static final String EXTRA_UNIQUE = BuildConfig.APPLICATION_ID.concat(".EXTRA_UNIQUE");
 
     public static final String TRIPS_COLLECTION = "trips";
     public static final String PEOPLE_COLLECTION = "people";

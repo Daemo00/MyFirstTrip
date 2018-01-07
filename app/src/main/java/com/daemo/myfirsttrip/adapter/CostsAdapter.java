@@ -100,6 +100,11 @@ public class CostsAdapter extends FirestoreAdapter<CostsAdapter.ViewHolder> impl
                                 for (Integer selected_position : selected_positions)
                                     notifyItemChanged(selected_position);
 
+                                if (unique) {
+                                    selected_positions.clear();
+                                    selectedIds.clear();
+                                }
+
                                 if (selected_positions.contains(position))
                                     selected_positions.remove(position);
                                 else

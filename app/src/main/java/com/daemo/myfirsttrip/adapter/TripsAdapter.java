@@ -44,9 +44,11 @@ public class TripsAdapter extends FirestoreAdapter<TripsAdapter.ViewHolder> impl
     public void onBindViewHolder(TripsAdapter.ViewHolder holder, int position) {
         Trip trip = getSnapshot(position).toObject(Trip.class);
         holder.setTrip(fragment, trip);
-        if (isChooseMode)
+        if (isChooseMode) {
             // Here I am just highlighting the background
-            holder.isSelected(selectedIds.contains(trip.getId()));
+            holder.isSelected(selectedIds.contains(trip.getId()) && !unselectedIds.contains(trip.getId()));
+            selected_positions.add(position);
+        }
     }
 
     @Override
@@ -101,6 +103,13 @@ public class TripsAdapter extends FirestoreAdapter<TripsAdapter.ViewHolder> impl
                                 // Updating old as well as new positions
                                 for (Integer selected_position : selected_positions)
                                     notifyItemChanged(selected_position);
+
+                                if (unique) {
+                                    unselectedIds.clear();
+                                    unselectedIds.addAll(selectedIds);
+                                    selectedIds.clear();
+                                    selected_positions.clear();
+                                }
 
                                 if (selected_positions.contains(position))
                                     selected_positions.remove(position);

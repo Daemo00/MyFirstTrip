@@ -42,7 +42,8 @@ public class TripsListFragment extends ListFragment {
     protected Set<String> getItemRelatedIds() {
         if (cost != null) {
             Set<String> s = new HashSet<>();
-            s.add(cost.getTripId());
+            if (!cost.getTripId().isEmpty())
+                s.add(cost.getTripId());
             return s;
         } else if (person != null)
             return person.getTripsIds().keySet();

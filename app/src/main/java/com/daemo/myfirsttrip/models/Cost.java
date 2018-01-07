@@ -18,7 +18,7 @@ public class Cost {
      * Map from person id to how much it contributes to the cost
      */
     private Map<String, Float> peopleIds = new HashMap<>();
-    private String tripId = "";
+    private String tripId = ""; // TODO get rid of tripsIds and use correctly this, especially in data class
 
     public Cost() {
 

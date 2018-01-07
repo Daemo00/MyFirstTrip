@@ -180,24 +180,36 @@ public abstract class DetailFragment extends MySuperFragment implements EventLis
 
     private void chooseItem1() {
         Bundle b = new Bundle();
-        Bundle bb = new Bundle();
-        bb.putBoolean(Constants.EXTRA_CHOOSE, true);
-        bb.putString(getExtraItemId(), getItemId());
+        Bundle bb = getChooseFragment1Bundle();
         b.putBundle(Constants.EXTRA_BUNDLE_FOR_FRAGMENT, bb);
         b.putBoolean(Constants.EXTRA_ADD_TO_BACKSTACK, true);
         b.putString(Constants.EXTRA_REPLACE_FRAGMENT, getListFragmentName1());
         mListener.onFragmentInteraction(b);
     }
 
-    private void chooseItem2() {
-        Bundle b = new Bundle();
+    @NonNull
+    protected Bundle getChooseFragment1Bundle() {
         Bundle bb = new Bundle();
         bb.putBoolean(Constants.EXTRA_CHOOSE, true);
         bb.putString(getExtraItemId(), getItemId());
+        return bb;
+    }
+
+    private void chooseItem2() {
+        Bundle b = new Bundle();
+        Bundle bb = getChooseFragment2Bundle();
         b.putBundle(Constants.EXTRA_BUNDLE_FOR_FRAGMENT, bb);
         b.putBoolean(Constants.EXTRA_ADD_TO_BACKSTACK, true);
         b.putString(Constants.EXTRA_REPLACE_FRAGMENT, getListFragmentName2());
         mListener.onFragmentInteraction(b);
+    }
+
+    @NonNull
+    protected Bundle getChooseFragment2Bundle() {
+        Bundle bb = new Bundle();
+        bb.putBoolean(Constants.EXTRA_CHOOSE, true);
+        bb.putString(getExtraItemId(), getItemId());
+        return bb;
     }
 
     protected abstract String getListFragmentName2();
