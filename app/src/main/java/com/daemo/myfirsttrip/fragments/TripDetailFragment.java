@@ -1,7 +1,9 @@
 package com.daemo.myfirsttrip.fragments;
 
 
+import android.os.Bundle;
 import android.support.annotation.NonNull;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.TextView;
@@ -30,7 +32,12 @@ public class TripDetailFragment extends DetailFragment{
     }
 
     @Override
-    void createDraftItemFromRef(DocumentReference itemDocReference, OnCompleteListener<DocumentReference> listener) {
+    protected Object getOrigItem(Bundle origItemBundle) {
+        return null;
+    }
+
+    @Override
+    void createDraftItemFromRef(Object origItem, DocumentReference itemDocReference, OnCompleteListener<DocumentReference> listener) {
         DataTrip.createDraftTripFromRef(itemDocReference, listener);
     }
 
@@ -117,6 +124,22 @@ public class TripDetailFragment extends DetailFragment{
     @Override
     protected void commitItem(OnCompleteListener<Void> listener) {
         DataTrip.commitTripBatch(trip, listener);
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        if (item.getItemId() == R.id.add_cost) {
+            Bundle b = new Bundle();
+            b.putBoolean(Constants.EXTRA_ADD_TO_BACKSTACK, true);
+            b.putString(Constants.EXTRA_REPLACE_FRAGMENT, CostDetailFragment.class.getName());
+            Bundle bb = new Bundle();
+            bb.putBoolean(Constants.EXTRA_ITEM_ADD, true);
+            bb.putString(Constants.EXTRA_TRIP_ID, trip.getId());
+            b.putBundle(Constants.EXTRA_BUNDLE_FOR_FRAGMENT, bb);
+            mListener.onFragmentInteraction(b);
+            return true;
+        }
+        return super.onOptionsItemSelected(item);
     }
 
     @Override

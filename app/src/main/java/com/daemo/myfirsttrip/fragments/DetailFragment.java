@@ -45,11 +45,12 @@ public abstract class DetailFragment extends MySuperFragment implements EventLis
     }
 
     private void initializeByArgs(Bundle args) {
-        if (args == null || args.isEmpty()) {
-            // From items list, add an item
+        if (args == null || args.isEmpty() ||
+                (args.containsKey(Constants.EXTRA_ITEM_ADD) && args.getBoolean(Constants.EXTRA_ITEM_ADD))) {
+            // Add an item, any other key is to be added to the created item
             currStatus = DetailFragmentMode.NEW;
             needsRefreshLayout = false;
-            createDraftItemFromRef(null, task -> {
+            createDraftItemFromRef(getOrigItem(args), null, task -> {
                 if (task.getException() != null) {
                     getMySuperActivity().showToast(task.getException().getMessage());
                     return;
@@ -62,12 +63,12 @@ public abstract class DetailFragment extends MySuperFragment implements EventLis
         }
 
         if (args.containsKey(getExtraItemId())
-                && args.containsKey(Constants.EXTRA_EDIT)
-                && args.getBoolean(Constants.EXTRA_EDIT)) {
+                && (args.containsKey(Constants.EXTRA_EDIT)
+                && args.getBoolean(Constants.EXTRA_EDIT))) {
             // Click on edit from the item
             currStatus = DetailFragmentMode.EDIT;
             needsRefreshLayout = true;
-            createDraftItemFromRef(getItemRef(args.getString(getExtraItemId())), task -> {
+            createDraftItemFromRef(null, getItemRef(args.getString(getExtraItemId())), task -> {
                 if (task.getException() != null) {
                     getMySuperActivity().showToast(task.getException().getMessage());
                     return;
@@ -87,7 +88,9 @@ public abstract class DetailFragment extends MySuperFragment implements EventLis
         }
     }
 
-    abstract void createDraftItemFromRef(DocumentReference itemDocReference, OnCompleteListener<DocumentReference> listener);
+    protected abstract Object getOrigItem(Bundle origItemBundle);
+
+    abstract void createDraftItemFromRef(Object origItem, DocumentReference itemDocReference, OnCompleteListener<DocumentReference> listener);
 
     protected abstract String getExtraItemId();
 

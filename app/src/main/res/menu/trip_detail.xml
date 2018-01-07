@@ -6,4 +6,9 @@
         android:icon="@drawable/ic_mode_edit_black_24dp"
         android:title="@string/edit_trip"
         app:showAsAction="ifRoom" />
+    <item
+        android:id="@+id/add_cost"
+        android:icon="@drawable/ic_attach_money_black_24dp"
+        android:title="@string/add_cost"
+        app:showAsAction="ifRoom" />
 </menu>

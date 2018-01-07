@@ -1,6 +1,7 @@
 package com.daemo.myfirsttrip.fragments;
 
 
+import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.view.View;
 import android.widget.EditText;
@@ -30,7 +31,12 @@ public class PersonDetailFragment extends DetailFragment {
     }
 
     @Override
-    protected void createDraftItemFromRef(DocumentReference itemDocReference, OnCompleteListener<DocumentReference> listener) {
+    protected Object getOrigItem(Bundle origItemBundle) {
+        return null;
+    }
+
+    @Override
+    protected void createDraftItemFromRef(Object origItem, DocumentReference itemDocReference, OnCompleteListener<DocumentReference> listener) {
         DataPerson.createDraftPersonFromRef(itemDocReference, listener);
     }
 

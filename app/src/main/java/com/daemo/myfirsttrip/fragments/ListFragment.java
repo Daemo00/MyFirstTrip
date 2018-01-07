@@ -169,12 +169,11 @@ public abstract class ListFragment extends MySuperFragment implements EventListe
         Set<String> selected_ids = new HashSet<>();
         mRecyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
         mRecyclerView.setHasFixedSize(true);
+        query = mFirestore.collection(getCollection())
+                .limit(Constants.QUERY_LIMIT);
         switch (currStatus) {
             case CHOOSE:
                 if (isItemSet()) {
-                    // Get all items and populate selectedIds
-                    query = mFirestore.collection(getCollection())
-                            .limit(Constants.QUERY_LIMIT);
                     selected_ids.addAll(getItemRelatedIds());
                     generateAdapter(query, selected_ids);
                 }
@@ -183,17 +182,12 @@ public abstract class ListFragment extends MySuperFragment implements EventListe
             case NESTED_EDIT:
                 if (isItemSet()) {
                     // Get only items in origItem
-                    query = mFirestore.collection(getCollection())
-                            .limit(Constants.QUERY_LIMIT);
                     query = getNestedFilter(query);
                     generateAdapter(query, selected_ids);
                     mAdapter.setMyRefreshing((MyRefreshing) getParentFragment());
                 }
                 break;
             case ALL:
-                // Get all the items!
-                query = mFirestore.collection(getCollection())
-                        .limit(Constants.QUERY_LIMIT);
                 generateAdapter(query, selected_ids);
                 // Allow edit on the list only if we are in the main list
                 ItemTouchHelper.Callback callback = new SimpleItemTouchHelperCallback(mAdapter);

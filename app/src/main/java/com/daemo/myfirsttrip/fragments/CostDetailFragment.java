@@ -33,8 +33,18 @@ public class CostDetailFragment extends DetailFragment {
     }
 
     @Override
-    void createDraftItemFromRef(DocumentReference itemDocReference, OnCompleteListener<DocumentReference> listener) {
-        DataCost.createDraftCostFromRef(itemDocReference, listener);
+    protected Object getOrigItem(Bundle origItemBundle) {
+        if (origItemBundle != null && origItemBundle.containsKey(Constants.EXTRA_TRIP_ID)) {
+            Cost origCost = new Cost();
+            origCost.setTripId(origItemBundle.getString(Constants.EXTRA_TRIP_ID));
+            return origCost;
+        }
+        return null;
+    }
+
+    @Override
+    void createDraftItemFromRef(Object origItem, DocumentReference itemDocReference, OnCompleteListener<DocumentReference> listener) {
+        DataCost.createDraftCostFromRef((Cost) origItem, itemDocReference, listener);
     }
 
     @Override

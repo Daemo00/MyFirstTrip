@@ -10,6 +10,7 @@ import java.util.Map;
 public class Trip {
     private String id;
     private String oldId = null;
+    private String newId = null;
     private boolean isDraft = false;
     private String title;
     private String subtitle;
@@ -90,5 +91,13 @@ public class Trip {
 
     public void setTotalCost(Float totalCost) {
         this.totalCost = totalCost;
+    }
+
+    public String getNewId() {
+        return newId;
+    }
+
+    public void setNewId(String newId) {
+        this.newId = newId;
     }
 }

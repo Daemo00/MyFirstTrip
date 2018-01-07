@@ -134,15 +134,24 @@ public class DataCost {
         batch.commit().addOnCompleteListener(onCompleteListener);
     }
 
-    public static void createDraftCostFromRef(@Nullable DocumentReference costDocReference, OnCompleteListener<DocumentReference> onCompleteListener) {
+    public static void createDraftCostFromRef(@Nullable Cost origCost, @Nullable DocumentReference costDocReference, OnCompleteListener<DocumentReference> onCompleteListener) {
         DocumentReference draftCostDocReference = FirebaseFirestore.getInstance()
                 .collection(Constants.COSTS_COLLECTION).document();
-        if (costDocReference == null) {
+        if (costDocReference == null && origCost == null) {
             // Creating a draft out of nowhere
             WriteBatch batch = FirebaseFirestore.getInstance().batch();
             Cost cost = new Cost(draftCostDocReference.getId());
             cost.setDraft(true);
             batch.set(draftCostDocReference, cost);
+            batch.commit().addOnCompleteListener(task ->
+                    Tasks.forResult(draftCostDocReference).addOnCompleteListener(onCompleteListener));
+            return;
+        } else if (origCost != null) {
+            // Creating a draft, copy of origCost
+            WriteBatch batch = FirebaseFirestore.getInstance().batch();
+            origCost.setId(draftCostDocReference.getId());
+            origCost.setDraft(true);
+            batch.set(draftCostDocReference, origCost);
             batch.commit().addOnCompleteListener(task ->
                     Tasks.forResult(draftCostDocReference).addOnCompleteListener(onCompleteListener));
             return;
