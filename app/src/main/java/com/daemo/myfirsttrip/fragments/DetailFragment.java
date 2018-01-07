@@ -334,8 +334,6 @@ public abstract class DetailFragment extends MySuperFragment implements EventLis
         switch (currStatus) {
             case EDIT:
             case NEW:
-                if (!isItemDraft())
-                    getMySuperActivity().showToast("This should be a draft");
                 loadEditLayout(getView());
                 break;
             case VIEW:
